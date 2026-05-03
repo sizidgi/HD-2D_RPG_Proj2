@@ -431,8 +431,32 @@ public class GameManager : MonoBehaviour
         }
 
         PlayerBackPosition = lastFieldPosition;
-        // シーン遷移
-        SceneManager.LoadScene(battleSceneName);
+        
+        // SceneTransitionManagerを使用して斜めワイプで遷移
+        if (SceneTransitionManager.Instance != null)
+        {
+            if (showDebugLog)
+            {
+                Debug.Log("[GameManager] SceneTransitionManagerで斜めワイプトランジションを使用");
+            }
+            
+            currentGameState = GameState.Battle;
+            SceneTransitionManager.Instance.LoadSceneWithDiagonalFade(battleSceneName);
+            
+            // トランジション完了まで待機
+            yield return new WaitForSeconds(1.5f);
+        }
+        else
+        {
+            // フォールバック: SceneTransitionManagerがない場合は直接遷移
+            if (showDebugLog)
+            {
+                Debug.LogWarning("[GameManager] SceneTransitionManagerが見つかりません。直接遷移します。");
+            }
+            
+            currentGameState = GameState.Battle;
+            SceneManager.LoadScene(battleSceneName);
+        }
 
         isTransitioning = false;
     }
@@ -694,19 +718,19 @@ public class GameManager : MonoBehaviour
         ExpTable[7] = 400;
         ExpTable[8] = 450;
         ExpTable[9] = 500;
-        ExpTable[10] = 550;
+        ExpTable[10] = 500;  // 550→500に変更
         
         // レベル11-20
-        ExpTable[11] = 600;
-        ExpTable[12] = 650;
-        ExpTable[13] = 700;
-        ExpTable[14] = 750;
-        ExpTable[15] = 800;
-        ExpTable[16] = 850;
-        ExpTable[17] = 900;
-        ExpTable[18] = 950;
-        ExpTable[19] = 1000;
-        ExpTable[20] = 1050;
+        ExpTable[11] = 550;  // 600→550に変更
+        ExpTable[12] = 600;  // 650→600に変更
+        ExpTable[13] = 650;  // 700→650に変更
+        ExpTable[14] = 700;  // 750→700に変更
+        ExpTable[15] = 750;  // 800→750に変更
+        ExpTable[16] = 800;  // 850→800に変更
+        ExpTable[17] = 850;  // 900→850に変更
+        ExpTable[18] = 900;  // 950→900に変更
+        ExpTable[19] = 950;  // 1000→950に変更
+        ExpTable[20] = 1000; // 1050→1000に変更
     }
     /// <summary>
     /// 経験値を付与してレベルアップ処理（非推奨：代わりにCharacter.GainExp()を使用）

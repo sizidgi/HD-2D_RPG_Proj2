@@ -16,7 +16,7 @@ MonoBehaviour:
   characterIcon: {fileID: 21300000, guid: 247a696d6a0c355439c9e8d6217b1ceb, type: 3}
   standingImage: {fileID: -1161578970, guid: be930a324da55b94bbb8cc37e3593a40, type: 3}
   enemyCheckFlag: 0
-  hp: 290
+  hp: 300
   mp: 200
   atk: 10
   Int: 30

@@ -14,15 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   charactername: "\u30D6\u30E9\u30C3\u30C9\u30A6\u30EB\u30D5"
   characterIcon: {fileID: 21300000, guid: 6a9abe6ed7120ad4fb4d92349984615b, type: 3}
+  standingImage: {fileID: 0}
   enemyCheckFlag: 1
-  hp: 1
-  mp: 100
-  atk: 10
-  Int: 0
-  def: 5
-  spd: 110
-  maxHp: 1000
-  maxMp: 10
+  hp: 120
+  mp: 15
+  atk: 15
+  Int: 15
+  def: 11
+  spd: 23
+  maxHp: 120
+  maxMp: 15
   exp: 100
   level: 100
   CharacterObj: {fileID: 478247392656403969, guid: 032b251d9419d7b4283ce492c1c5483d,

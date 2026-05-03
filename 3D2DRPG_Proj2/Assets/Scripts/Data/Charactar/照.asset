@@ -17,14 +17,14 @@ MonoBehaviour:
   standingImage: {fileID: 826081048, guid: 74d0cdb28d90d3043a6afc3f33c84130, type: 3}
   enemyCheckFlag: 0
   hp: 149
-  mp: 201
+  mp: 0
   atk: 10
   Int: 30
   def: 15
   spd: 20
   maxHp: 223
   maxMp: 231
-  exp: 0
+  exp: 150
   level: 20
   CharacterObj: {fileID: 3108720551217584442, guid: ff58271cee0b3554bba0b1e26b22e8b5,
     type: 3}

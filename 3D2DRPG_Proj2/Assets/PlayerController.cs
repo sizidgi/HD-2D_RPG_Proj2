@@ -33,10 +33,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform moveReferenceCamera;
 
     private static bool isFirstLoad = true;
+    // 戦闘処理の多重発火防止フラグ
+    private bool isBattleTriggering = false;
+    
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        
+        // フィールドに戻ってきた時は必ずフラグをリセット
+        isBattleTriggering = false;
 
         if(GameManager.Instance != null)
         {
@@ -227,7 +233,9 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void OnCollisionEnter(Collision collision)
     {
-
+        // 多重発火防止: 既に戦闘処理が動いている場合はスキップ
+        if (isBattleTriggering) return;
+        
         if (collision.gameObject.CompareTag("Enemy"))
         {
             // 敵と衝突した場合
@@ -235,6 +243,7 @@ public class PlayerController : MonoBehaviour
             // GameManagerを通してバトル開始
             if (GameManager.Instance != null)
             {
+                isBattleTriggering = true;
                 GetEnemyStetas(collision.gameObject);
             }
             else
@@ -346,10 +355,12 @@ public class PlayerController : MonoBehaviour
             {
                 // タイミング成功：敵を倒す（演出後に呼ばれる）
                 OnQuickTimeCombatSuccess(enemyObject, enemyDataList, encounterGroupId);
+                // 成功時はフィールドに戻るのでフラグリセット
+                isBattleTriggering = false;
             }
             else
             {
-                // タイミング失敗：通常戦闘に移行
+                // タイミング失敗：通常戦闘に移行（遷移するのでフラグリセット不要）
                 StartNormalBattle(enemyObject, enemyDataList, encounterGroupId);
             }
             

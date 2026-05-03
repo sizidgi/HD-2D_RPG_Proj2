@@ -141,10 +141,16 @@ public class Character: MonoBehaviour
         if (level >= maxLevel)
         {
             exp = 0; // 最大レベルに達している場合は経験値を0に
+            Debug.Log($"[{charactername}] 最大レベル到達のため経験値獲得なし");
             return;
         }
         
+        int startLevel = level;
+        int startExp = exp;
+        
         exp += amount;
+        
+        Debug.Log($"[{charactername}] 経験値獲得: +{amount} (現在: {exp}, Lv{level}→Lv{level+1}に必要: {ExpToLevelUp()})");
         
         // CharacterDataも同期
         if (characterData != null)
@@ -153,10 +159,13 @@ public class Character: MonoBehaviour
         }
         
         // 連続レベルアップに対応
+        int levelUpCount = 0;
         while (exp >= ExpToLevelUp() && level < maxLevel)
         {
             int expNeeded = ExpToLevelUp();
             exp -= expNeeded;
+            
+            Debug.Log($"[{charactername}] レベルアップ条件達成: {exp + expNeeded} >= {expNeeded}, 余剰経験値: {exp}");
             
             // CharacterDataの経験値も同期
             if (characterData != null)
@@ -165,6 +174,12 @@ public class Character: MonoBehaviour
             }
             
             LevelUp();
+            levelUpCount++;
+        }
+        
+        if (levelUpCount > 0)
+        {
+            Debug.Log($"★ [{charactername}] Lv{startLevel}→Lv{level} ({levelUpCount}回レベルアップ) 経験値: {startExp}→{exp}/{ExpToLevelUp()}");
         }
         
         // 最大レベルに達した場合

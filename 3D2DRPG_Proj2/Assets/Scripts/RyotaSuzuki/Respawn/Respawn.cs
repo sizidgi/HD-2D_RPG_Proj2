@@ -12,11 +12,11 @@ public class Respawn : MonoBehaviour
     [SerializeField] float spawnRadius = 20f;
     [SerializeField] float respawnInterval = 2f;
     [SerializeField] float initialSpawnDelay = 2f;
-    [SerializeField] float minDistanceFromPlayer = 5f;// “G‚ÆƒvƒŒƒCƒ„[‚ÌƒXƒ|[ƒ“ŠÔŠu‚ğ’²®‚·‚éB
-    [SerializeField] float minDistanceFromEnemies = 8f; // “G‚Æ“G‚ÌƒXƒ|[ƒ“ŠÔŠu‚ğ’²®‚·‚éB
+    [SerializeField] float minDistanceFromPlayer = 5f;// ï¿½Gï¿½Æƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌƒXï¿½|ï¿½[ï¿½ï¿½ï¿½ÔŠuï¿½ğ’²ï¿½ï¿½ï¿½ï¿½ï¿½B
+    [SerializeField] float minDistanceFromEnemies = 8f; // ï¿½Gï¿½Æ“Gï¿½ÌƒXï¿½|ï¿½[ï¿½ï¿½ï¿½ÔŠuï¿½ğ’²ï¿½ï¿½ï¿½ï¿½ï¿½B
     [SerializeField] bool enableDebugLog = true;
     
-    private const string csvName = "ƒGƒ“ƒJƒEƒ“ƒgƒe[ƒuƒ‹";
+    private const string csvName = "ã‚¨ãƒ³ã‚«ã‚¦ãƒ³ãƒˆãƒ†ãƒ¼ãƒ–ãƒ«";
     
     private List<GameObject> enemyList = new List<GameObject>();
     private List<EnemySpawnGroup> encounterTable = new List<EnemySpawnGroup>();
@@ -96,7 +96,7 @@ public class Respawn : MonoBehaviour
         
         if (!File.Exists(csvPath))
         {
-            Debug.LogError($"[Respawn] CSV‚ª“Ç‚İ‚ß‚Ü‚¹‚ñ: {csvPath}");
+            Debug.LogError($"[Respawn] CSVï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ß‚Ü‚ï¿½ï¿½ï¿½: {csvPath}");
             return;
         }
         
@@ -266,7 +266,7 @@ public class Respawn : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[Respawn] EnemyWanderAI‚ğ‚à‚Â“G‚ª‚¢‚Ü‚¹‚ñ");
+            Debug.LogError("[Respawn] EnemyWanderAIï¿½ï¿½ï¿½ï¿½ï¿½Â“Gï¿½ï¿½ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½");
         }
         
         enemyList.Add(enemy);

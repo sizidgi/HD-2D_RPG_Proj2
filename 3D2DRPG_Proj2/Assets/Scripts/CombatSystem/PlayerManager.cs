@@ -73,6 +73,9 @@ public class PlayerManager : MonoBehaviour
 
     public AudioSource seSource;
 
+    //MPが足りなくてキャンセルするとき用のサウンド
+    public AudioClip cancelSoundEffect;
+
     //Buffの管理用リスト
     public List<CharacterBuff>　characterBuffs = new List<CharacterBuff>();
 
@@ -195,6 +198,35 @@ public class PlayerManager : MonoBehaviour
         if (turnManager != null && turnManager.IsBattlePaused())
         {
             return;
+        }
+        
+        // 対象選択中（Attack / Heal / Buff）にESC/Backspaceでスキル選択に戻る
+        if (selectedCharacter != null &&
+            (selectedCharacter.StatusFlag == StatusFlag.Attack ||
+             selectedCharacter.StatusFlag == StatusFlag.Heal ||
+             selectedCharacter.StatusFlag == StatusFlag.Buff))
+        {
+            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace))
+            {
+                Debug.Log("[PlayerManager] 対象選択をキャンセル - スキル選択に戻ります");
+                
+                // キャンセルSEを再生
+                if (cancelSoundEffect != null && seSource != null)
+                {
+                    seSource.PlayOneShot(cancelSoundEffect);
+                }
+                
+                // 対象選択UIを閉じる
+                if (uiTest != null)
+                {
+                    uiTest.ClosePanel();
+                }
+                
+                // スキル選択に戻る
+                selectedCharacter.StatusFlag = StatusFlag.Select;
+                isActionPending = true;
+                return;
+            }
         }
         
         if (!isActionPending) return;
@@ -424,7 +456,23 @@ public class PlayerManager : MonoBehaviour
         //スキル呼び出し
         
         Debug.Log($"effectTypeで分岐: {selectedSkill.effectType}");
-        
+
+        //MPが足りるかを確認
+        if (selectedCharacter.mp < selectedSkill.mpCost)
+        {
+            //SEならす
+            if (cancelSoundEffect != null)
+            {
+                seSource.PlayOneShot(cancelSoundEffect);
+            }
+
+            Debug.LogWarning($"MP不足: 必要 {selectedSkill.mpCost}, 現在 {selectedCharacter.mp}");
+            selectedCharacter.StatusFlag = StatusFlag.Select;
+            isActionPending = true;
+            return;
+        }
+
+
         switch (selectedSkill.effectType)
         {
             case SkillEffectType.Attack:
@@ -472,14 +520,7 @@ public class PlayerManager : MonoBehaviour
             isActionPending = true;
             return;
         }
-        //MPが足りるかを確認
-        if (selectedCharacter.mp < selectedSkill.mpCost)
-        {
-            Debug.LogWarning($"MP不足: 必要 {selectedSkill.mpCost}, 現在 {selectedCharacter.mp}");
-            selectedCharacter.StatusFlag = StatusFlag.Select;
-            isActionPending = true;
-            return;
-        }
+        
 
         // 全の攻撃スキルの場合、すべての敵に攻撃を適用
         if (selectedSkill.targetScope == TargetScope.All||selectedCharacter.AllAttack)
@@ -730,15 +771,15 @@ public class PlayerManager : MonoBehaviour
     private bool ApplyAttack(Character enemy, SkillData skill, int Attackbuff = 0)
     {
         if (enemy == null || skill == null) return true; // nullチェック追加
-
         // 攻撃アニメーション再生
         playerSideAnimator = selectedCharacter.PlayerAnimator;
         if (playerSideAnimator != null)
         {
             playerSideAnimator.SetTrigger("Attack");
         }
+
         //アニメーションが流れるのを待つ
-        new WaitForSeconds(0.6f);
+        new WaitForSeconds(2.5f);
 
         // バフ適用後の攻撃力と防御力を取得
         int effectiveAtk = selectedCharacter.GetEffectiveAttack(skill.isIntSansyou);

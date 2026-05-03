@@ -9,7 +9,7 @@ public class UITest : MonoBehaviour
     private int index = 0;
     private int maxIndex = 0;
     private bool inputFlag = false;
-    [SerializeField, Header("–îˆóƒIƒuƒWƒFƒNƒg")]
+    [SerializeField, Header("æ•µã®é ­ä¸Šã«å‡ºã™ã‚¯ãƒªã‚¹ã‚¿ãƒ«UI")]
     private GameObject EnemyAttakPointUI;
     public void Inputs(UnityEvent<int> unityEvent, int i, List<Character> Enemys)
     {
@@ -30,7 +30,7 @@ public class UITest : MonoBehaviour
         {
             yield return null;
 
-            // i‚Ì’l‚É‰‚¶‚Ä‰Ÿ‚¹‚éƒL[‚ğ§Œä
+            
             if (Input.GetKeyDown(KeyCode.W) && inputFlag || Input.GetKeyDown(KeyCode.UpArrow) && inputFlag)
             {
                 inputFlag = false;
@@ -50,6 +50,19 @@ public class UITest : MonoBehaviour
             }
         }
     }
+    /// <summary>
+    /// å¯¾è±¡é¸æŠUIã‚’é–‰ã˜ã¦ã‚³ãƒ«ãƒ¼ãƒãƒ³ã‚’åœæ­¢ã™ã‚‹ï¼ˆã‚­ãƒ£ãƒ³ã‚»ãƒ«ç”¨ï¼‰
+    /// </summary>
+    public void ClosePanel()
+    {
+        inputFlag = false;
+        StopAllCoroutines();
+        if (EnemyAttakPointUI != null)
+        {
+            EnemyAttakPointUI.SetActive(false);
+        }
+    }
+
     void ChengePoint(int movepoint)
     {
         index += movepoint;

@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: "\u30D5\u30EA\u30FC\u30BA\u30EC\u30A4\u30F3"
   description: 
   icon: {fileID: 0}
-  soundEffect: {fileID: 0}
+  soundEffect: {fileID: 8300000, guid: 9e43cf81e17abc84d9717a8bfec5e963, type: 3}
   vfxPrefab: {fileID: 0}
   animationName: 
   effectType: 0
@@ -37,6 +37,11 @@ MonoBehaviour:
   comboDamageMultiplier: 1.2
   maxcombo: 3
   missCancel: 1
+  rengeki: 0
+  rengekiCount: 0
+  atkAftHeal: 0
+  wariaiHeal: 0
+  wariai: 0
   statusChance: 0
   buffEffect:
   - {fileID: 11400000, guid: c574ed739704f3d4488076ad8e90e61a, type: 2}

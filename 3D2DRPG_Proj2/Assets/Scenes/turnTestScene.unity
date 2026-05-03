@@ -3128,8 +3128,7 @@ MonoBehaviour:
   enemyManager: {fileID: 333137748}
   playerCharacters:
   - {fileID: 11400000, guid: 3132bac34d376574e91db1cabfce867f, type: 2}
-  - {fileID: 11400000, guid: 55c4af3dd0f3c7447964d6c6d2e45cae, type: 2}
-  - {fileID: 11400000, guid: 4fdde2f1ac86c944f847efc47577925e, type: 2}
+  - {fileID: 11400000, guid: a8840a6132af079479d5a4e77446714a, type: 2}
   spawnPositions:
   - {x: 2, y: 0, z: -1.5}
   - {x: 4, y: 0, z: 0}
@@ -3142,6 +3141,7 @@ MonoBehaviour:
   StartPosition: {x: 0, y: 0, z: 0}
   enemyAnimator: {fileID: 0}
   seSource: {fileID: 1119663633}
+  cancelSoundEffect: {fileID: 8300000, guid: 0610f3e306af93a4daf7d8f64b4b1852, type: 3}
   characterBuffs: []
   battleCamera: {fileID: 218251944}
 --- !u!4 &745215965
@@ -6725,7 +6725,6 @@ MonoBehaviour:
   nextTurnList: []
   ResultWinCanvas: {fileID: 1257309013}
   victoryCharacterImage: {fileID: 1675393924}
-  victoryPoseDuration: 100
   currentTurnObject: {fileID: 0}
 --- !u!1 &1880430756
 GameObject:

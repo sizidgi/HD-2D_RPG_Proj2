@@ -478,10 +478,16 @@ public class TurnManager : MonoBehaviour
         
         ResultWinCanvas.SetActive(true);
 
+        Debug.Log($"[経験値計算前] GameManager.EnemyData数: {GameManager.Instance.EnemyData.Count}");
+        Debug.Log($"[経験値計算前] enemyManager.enemyData数: {enemyManager.enemyData.Count}");
+        
         GameManager.Instance.EnemyData.AddRange(enemyManager.enemyData);
+        
+        Debug.Log($"[経験値計算後] GameManager.EnemyData数: {GameManager.Instance.EnemyData.Count}");
 
         // 倒した敵を記録し、経験値を計算
         int totalExp = 0;
+        Debug.Log($"=== 経験値計算開始 ===");
         //if (GameManager.Instance != null && GameManager.Instance.EnemyData != null)
         //{
         foreach (var enemyData in GameManager.Instance.EnemyData)
@@ -492,11 +498,13 @@ public class TurnManager : MonoBehaviour
                 GameManager.Instance.RecordEnemyDefeat(enemyData);
                 //Debug.Log($"敵を倒した記録: {enemyData.charactername}");
                 // 敵の経験値を合計
-                totalExp += CalculateEnemyExp(enemyData);
+                int enemyExp = CalculateEnemyExp(enemyData);
+                totalExp += enemyExp;
+                Debug.Log($"  {enemyData.charactername}: {enemyExp}EXP (累計: {totalExp}EXP)");
             }
         }
         //}
-        Debug.Log($"総獲得経験値: {totalExp}");
+        Debug.Log($"★ 総獲得経験値: {totalExp}");
         // プレイヤーに経験値を配布
         if (totalExp > 0)
         {
@@ -556,7 +564,11 @@ public class TurnManager : MonoBehaviour
         // 各プレイヤーに均等に経験値を配布
         int expPerPlayer = totalExp / alivePlayerCount;
 
-        Debug.Log($"経験値配布: 総経験値 {totalExp}, 生存プレイヤー数 {alivePlayerCount}, 1人あたり {expPerPlayer}");
+        Debug.Log($"=== 経験値配布 ===");
+        Debug.Log($"  総経験値: {totalExp}");
+        Debug.Log($"  生存プレイヤー数: {alivePlayerCount}");
+        Debug.Log($"  1人あたり: {expPerPlayer}EXP");
+        Debug.Log($"==================");
 
         foreach (var playerObj in players)
         {

@@ -7,29 +7,29 @@ using DG.Tweening;
 
 public class ResultWin : MonoBehaviour
 {
-    [SerializeField, Header("ƒIƒuƒWƒFƒNƒgó‚¯æ‚è—p‚ÌƒvƒŒƒCƒ„[ƒ}ƒl[ƒWƒƒ[ƒXƒNƒŠƒvƒg")]
+    [SerializeField, Header("")]
     private PlayerManager playerManager;
 
     private List<GameObject> players;
 
-    [SerializeField, Header("UIƒvƒŒƒnƒu")]
+    [SerializeField, Header("Prefab")]
     private GameObject UIPrefab;
-    [SerializeField, Header("UI”z’uêŠ")]
+    [SerializeField, Header("UIParent")]
     private Transform UIParent;
 
-    [Header("ƒXƒOƒ‹•\¦")]
+    [Header("ã‚¹ã‚°ãƒ«")]
     [SerializeField] private Image SuguruExpBarBackground;
     [SerializeField] private Image SuguruExpFill;
     [SerializeField] private TextMeshProUGUI SuguruExpText;
     [SerializeField] private TextMeshProUGUI SuguruLevelText;
 
-    [Header("Æ•\¦")]
+    [Header("ç…§")]
     [SerializeField] private Image TeruExpBarBackground;
     [SerializeField] private Image TeruExpFill;
     [SerializeField] private TextMeshProUGUI TeruExpText;
     [SerializeField] private TextMeshProUGUI TeruLevelText;
     
-    [Header("ŒoŒ±’lƒAƒjƒ[ƒVƒ‡ƒ“İ’è")]
+    [Header("Expã‚¢ãƒ‹ãƒ¡")]
     [SerializeField] private float expAnimationDuration = 2f;
     [SerializeField] private Ease expAnimationEase = Ease.OutQuad;
 
@@ -47,34 +47,28 @@ public class ResultWin : MonoBehaviour
 
     private IEnumerator AnimateExpGain()
     {
-        Debug.Log("[ResultWin] ŒoŒ±’lƒAƒjƒ[ƒVƒ‡ƒ“ŠJn");
         yield return new WaitForSeconds(0.5f);
         
         if (GameManager.Instance == null || GameManager.Instance.PlayerData == null)
         {
-            Debug.LogError("[ResultWin] GameManager‚Ü‚½‚ÍPlayerData‚ªnull‚Å‚·");
+            Debug.LogError("[ResultWin] GameManagerPlayerDatanull");
             yield break;
         }
         
-        Debug.Log($"[ResultWin] GameManager.PlayerData”: {GameManager.Instance.PlayerData.Count}");
+        Debug.Log($"[ResultWin] GameManager.PlayerData: {GameManager.Instance.PlayerData.Count}");
         
         foreach (var playerChar in GameManager.Instance.PlayerData)
         {
             if (playerChar == null) continue;
             
-            Debug.Log($"[ResultWin] ˆ—’†: {playerChar.charactername}");
+            Debug.Log($"[ResultWin]: {playerChar.charactername}");
             
-            if (playerChar.charactername == "Œ")
-            {
-                Debug.Log($"[ResultWin] {playerChar.charactername} ‚ÍŒoŒ±’l•\¦‘ÎÛŠO‚Ì‚½‚ßƒXƒLƒbƒv");
-                continue;
-            }
             
             var snapshot = GameManager.Instance.GetPreBattleSnapshot(playerChar.charactername);
             
             if (snapshot == null)
             {
-                Debug.LogWarning($"[ResultWin] {playerChar.charactername} ‚ÌƒXƒiƒbƒvƒVƒ‡ƒbƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB‰‰ñí“¬‚Æ‚µ‚Äˆ—‚µ‚Ü‚·B");
+                Debug.LogWarning($"[ResultWin] {playerChar.charactername}");
                 
                 snapshot = new GameManager.PreBattleSnapshot
                 {
@@ -86,19 +80,19 @@ public class ResultWin : MonoBehaviour
                 };
             }
             
-            Debug.Log($"[ResultWin] ƒXƒiƒbƒvƒVƒ‡ƒbƒg: {playerChar.charactername} Lv.{snapshot.level} {snapshot.exp}/{snapshot.requiredExp}");
+            Debug.Log($"[ResultWin]  {playerChar.charactername} Lv.{snapshot.level} {snapshot.exp}/{snapshot.requiredExp}");
             
             Image expFill = null;
             TextMeshProUGUI expText = null;
             TextMeshProUGUI levelText = null;
             
-            if (playerChar.charactername == "ƒXƒOƒ‹")
+            if (playerChar.charactername == "ã‚¹ã‚°ãƒ«")
             {
                 expFill = SuguruExpFill;
                 expText = SuguruExpText;
                 levelText = SuguruLevelText;
             }
-            else if (playerChar.charactername == "Æ")
+            else if (playerChar.charactername == "ç…§")
             {
                 expFill = TeruExpFill;
                 expText = TeruExpText;
@@ -107,12 +101,12 @@ public class ResultWin : MonoBehaviour
             
             if (expFill != null)
             {
-                Debug.Log($"[ResultWin] ƒAƒjƒ[ƒVƒ‡ƒ“ŠJn: {playerChar.charactername}");
+                Debug.Log($"[ResultWin]: {playerChar.charactername}");
                 StartCoroutine(AnimateExpForCharacter(playerChar, snapshot, expFill, expText, levelText));
             }
             else
             {
-                Debug.LogWarning($"[ResultWin] {playerChar.charactername} ‚ÌŒoŒ±’lƒo[‚ªnull‚Å‚·");
+                Debug.LogWarning($"[ResultWin] {playerChar.charactername} ï¿½ÌŒoï¿½ï¿½ï¿½lï¿½oï¿½[ï¿½ï¿½nullï¿½Å‚ï¿½");
             }
         }
     }
@@ -131,7 +125,7 @@ public class ResultWin : MonoBehaviour
         int currentTotalExp = GameManager.Instance.CalculateTotalExp(character.level, character.exp);
         int gainedExp = currentTotalExp - snapshot.totalExp;
         
-        Debug.Log($"[ResultWin] {character.charactername} í“¬‘O: Lv.{currentLevel} {currentExp}/{requiredExp}EXP ¨ Šl“¾: +{gainedExp}EXP (—İÏ: {snapshot.totalExp}¨{currentTotalExp})");
+        Debug.Log($"[ResultWin] {character.charactername} ï¿½í“¬ï¿½O: Lv.{currentLevel} {currentExp}/{requiredExp}EXP ï¿½ï¿½ ï¿½lï¿½ï¿½: +{gainedExp}EXP (ï¿½İï¿½: {snapshot.totalExp}ï¿½ï¿½{currentTotalExp})");
         
         if (levelText != null)
         {
@@ -150,7 +144,7 @@ public class ResultWin : MonoBehaviour
         
         if (gainedExp <= 0)
         {
-            Debug.Log($"[ResultWin] {character.charactername} ŒoŒ±’lŠl“¾‚È‚µ");
+            Debug.Log($"[ResultWin] {character.charactername}");
             yield break;
         }
         
@@ -164,7 +158,7 @@ public class ResultWin : MonoBehaviour
             
             float animDuration = expAnimationDuration * ((float)expToGain / Mathf.Max(gainedExp, 1));
             
-            Debug.Log($"[ResultWin] ƒAƒjƒ[ƒVƒ‡ƒ“Às: {currentExp} ¨ {finalExp} / {requiredExp} (”ä—¦: {targetRatio:F2})");
+            Debug.Log($"[ResultWin]  {currentExp} {finalExp} / {requiredExp}");
             
             yield return expFill.DOFillAmount(targetRatio, animDuration)
                 .SetEase(expAnimationEase)
@@ -187,7 +181,6 @@ public class ResultWin : MonoBehaviour
                 currentExp -= requiredExp;
                 requiredExp = GameManager.Instance.GetRequiredExp(currentLevel);
                 
-                Debug.Log($"š {character.charactername} ‚ªƒŒƒxƒ‹ {currentLevel} ‚ÉƒAƒbƒvI");
                 
                 if (levelText != null)
                 {
@@ -205,6 +198,6 @@ public class ResultWin : MonoBehaviour
             }
         }
         
-        Debug.Log($"[ResultWin] {character.charactername} ƒAƒjƒ[ƒVƒ‡ƒ“Š®—¹: Lv.{currentLevel} {currentExp}/{requiredExp}EXP");
+        
     }
 }
