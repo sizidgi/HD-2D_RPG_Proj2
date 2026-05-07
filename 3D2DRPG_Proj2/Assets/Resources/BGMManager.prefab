@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6062627075993089132
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9200053821301288003}
+  - component: {fileID: 2268138230398932195}
+  - component: {fileID: 149519091308435367}
+  - component: {fileID: 863727038579347706}
+  m_Layer: 0
+  m_Name: BGMManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9200053821301288003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6062627075993089132}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 12.708754, y: 8.443721, z: 5.7002554}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2268138230398932195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6062627075993089132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efa71e7ac1dcbd144bbdec69b25eb6a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentGameState: 1
+  gameFieldSceneName: GameField
+  battleSceneName: turnTestScene
+  titleSceneName: GameTitle
+  enableBattleTransition: 1
+  battleTransitionDelay: 0.5
+  OnBattleStart:
+    m_PersistentCalls:
+      m_Calls: []
+  OnBattleEnd:
+    m_PersistentCalls:
+      m_Calls: []
+  OnGameStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  showDebugLog: 1
+  isi: 1
+  AllCharacterData:
+  - {fileID: 11400000, guid: fdfc2772cdd97584f9b41ecffe093f82, type: 2}
+  - {fileID: 11400000, guid: a8840a6132af079479d5a4e77446714a, type: 2}
+  - {fileID: 11400000, guid: ce69fe77855455e499efed043eb05095, type: 2}
+  PlayerData:
+  - {fileID: 11400000, guid: fdfc2772cdd97584f9b41ecffe093f82, type: 2}
+  - {fileID: 11400000, guid: a8840a6132af079479d5a4e77446714a, type: 2}
+  EnemyData: []
+  defeatedEnemyIds:
+    items: []
+  EventIDName: 
+  EventFlag: 0
+--- !u!114 &149519091308435367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6062627075993089132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5092cd348ccbd5648b561d97fcaf0bdc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TestEventID: event-007
+--- !u!114 &863727038579347706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6062627075993089132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6883b2c9c599bb64c98ec0692fa43708, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bgmSource: {fileID: 0}
+  battleNormalBGM: {fileID: 8300000, guid: d8d7db7646554c542a28befdff07aa43, type: 3}
+  battleBossBGM: {fileID: 8300000, guid: 040ee4ae41b8be841895dc7de28114f4, type: 3}
+  fieldBGM: {fileID: 8300000, guid: 6aef7c21d5752e7428bcae245bd5740c, type: 3}
+  bgmVolume: 0.408
+  fadeOutDuration: 1
+  fadeInDuration: 1

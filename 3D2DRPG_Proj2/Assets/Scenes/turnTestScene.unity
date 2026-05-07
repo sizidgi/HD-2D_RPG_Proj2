@@ -3256,7 +3256,7 @@ MonoBehaviour:
   enemyManager: {fileID: 333137748}
   playerCharacters:
   - {fileID: 11400000, guid: 3132bac34d376574e91db1cabfce867f, type: 2}
-  - {fileID: 11400000, guid: a8840a6132af079479d5a4e77446714a, type: 2}
+  - {fileID: 11400000, guid: 55c4af3dd0f3c7447964d6c6d2e45cae, type: 2}
   spawnPositions:
   - {x: 2, y: 0, z: -1.5}
   - {x: 4, y: 0, z: 0}

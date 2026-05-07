@@ -250,22 +250,15 @@ public class GameManager : MonoBehaviour
         // 戦闘シーンに入った時の処理
         if (scene.name == battleSceneName)
         {
-            // BGMを再生
-            if (BGMManager.Instance != null)
+            BGMManager bgm = BGMManager.EnsureInstance();
+            // 真のボス戦（中ボスではない）の場合のみボスBGMを再生
+            string bgmToPlay = (isBossBattle && !isMidBossBattle) ? "BattleBoss" : currentBattleBGM;
+
+            bgm.PlayBGM(bgmToPlay, fade: true);
+
+            if (showDebugLog)
             {
-                // 真のボス戦（中ボスではない）の場合のみボスBGMを再生
-                string bgmToPlay = (isBossBattle && !isMidBossBattle) ? "BattleBoss" : currentBattleBGM;
-                
-                BGMManager.Instance.PlayBGM(bgmToPlay, fade: true);
-                
-                if (showDebugLog)
-                {
-                    Debug.Log($"[GameManager] 戦闘BGM再生: {bgmToPlay} (isBossBattle={isBossBattle}, isMidBossBattle={isMidBossBattle})");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("[GameManager] BGMManagerが見つかりません");
+                Debug.Log($"[GameManager] 戦闘BGM再生: {bgmToPlay} (isBossBattle={isBossBattle}, isMidBossBattle={isMidBossBattle})");
             }
         }
         
@@ -285,14 +278,12 @@ public class GameManager : MonoBehaviour
             }
             
             // フィールドBGMを再生
-            if (BGMManager.Instance != null)
+            BGMManager bgm = BGMManager.EnsureInstance();
+            bgm.PlayBGM("Field", fade: true);
+
+            if (showDebugLog)
             {
-                BGMManager.Instance.PlayBGM("Field", fade: true);
-                
-                if (showDebugLog)
-                {
-                    Debug.Log("[GameManager] フィールドBGM再生");
-                }
+                Debug.Log("[GameManager] フィールドBGM再生");
             }
             
             // 戦闘後会話イベントをチェック

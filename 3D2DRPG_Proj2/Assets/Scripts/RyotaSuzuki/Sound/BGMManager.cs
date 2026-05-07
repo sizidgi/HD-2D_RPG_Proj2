@@ -9,6 +9,48 @@ public class BGMManager : MonoBehaviour
 {
     public static BGMManager Instance;
 
+    private static BGMAudioLibrary _cachedLibrary;
+
+    /// <summary>
+    /// GameField より前に戦闘などが始まる経路でも BGM を再生できるようにする。
+    /// 優先: シーン内の BGMManager → Resources のプレハブ → 空オブジェクト + BGMAudioLibrary / AudioClip。
+    /// </summary>
+    public static BGMManager EnsureInstance()
+    {
+        if (Instance != null)
+            return Instance;
+
+        BGMManager existing = FindObjectOfType<BGMManager>();
+        if (existing != null)
+        {
+            if (!existing.gameObject.activeInHierarchy)
+                existing.gameObject.SetActive(true);
+            if (Instance == null)
+                Instance = existing;
+            return Instance;
+        }
+
+        // Inspector 設定済みのプレハブ（Resources に置く）
+        string[] prefabPaths = { "BGMManager", "Prefabs/BGMManager", "BGM/BGMManager" };
+        foreach (string path in prefabPaths)
+        {
+            GameObject prefab = Resources.Load<GameObject>(path);
+            if (prefab != null)
+            {
+                GameObject go = Object.Instantiate(prefab);
+                go.name = "BGMManager";
+                if (Instance != null)
+                    return Instance;
+                Debug.Log($"[BGMManager] Resources プレハブから生成しました: {path}");
+                return Instance;
+            }
+        }
+
+        GameObject empty = new GameObject("BGMManager");
+        empty.AddComponent<BGMManager>();
+        return Instance;
+    }
+
     [Header("AudioSource")]
     [SerializeField] private AudioSource bgmSource;
 
@@ -33,33 +75,84 @@ public class BGMManager : MonoBehaviour
     // フェード処理用のコルーチン
     private Coroutine fadeCoroutine;
 
-    void Awake()
+    private bool HasAnyClipConfigured()
     {
-        // シングルトンパターン
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            Debug.Log("[BGMManager] BGMManagerを初期化しました");
-        }
-        else
-        {
-            Debug.Log("[BGMManager] 既存のBGMManagerが存在するため、このインスタンスを破棄します");
-            Destroy(gameObject);
+        return battleNormalBGM != null || battleBossBGM != null || fieldBGM != null;
+    }
+
+    /// <summary>
+    /// クリップ参照が空のとき、BGMAudioLibrary（Resources）で埋める。
+    /// </summary>
+    private void TryFillClipsFromLibrary()
+    {
+        if (HasAnyClipConfigured())
             return;
+
+        if (_cachedLibrary == null)
+        {
+            _cachedLibrary = Resources.Load<BGMAudioLibrary>("BGM/BGMAudioLibrary");
+            if (_cachedLibrary == null)
+                _cachedLibrary = Resources.Load<BGMAudioLibrary>("BGMAudioLibrary");
         }
 
-        // AudioSourceの初期化
+        if (_cachedLibrary == null)
+            return;
+
+        if (battleNormalBGM == null)
+            battleNormalBGM = _cachedLibrary.battleNormalBGM;
+        if (battleBossBGM == null)
+            battleBossBGM = _cachedLibrary.battleBossBGM;
+        if (fieldBGM == null)
+            fieldBGM = _cachedLibrary.fieldBGM;
+        if (_cachedLibrary.bgmVolume > 0f)
+            bgmVolume = _cachedLibrary.bgmVolume;
+
+        Debug.Log("[BGMManager] BGMAudioLibrary（Resources）からクリップを参照しました");
+    }
+
+    private void EnsureAudioSource()
+    {
         if (bgmSource == null)
         {
             bgmSource = gameObject.AddComponent<AudioSource>();
             Debug.Log("[BGMManager] AudioSourceを自動生成しました");
         }
-        
+
         bgmSource.loop = true;
         bgmSource.volume = bgmVolume;
-        
-        Debug.Log($"[BGMManager] AudioSource設定完了 - Volume: {bgmVolume}");
+    }
+
+    void Awake()
+    {
+        TryFillClipsFromLibrary();
+        EnsureAudioSource();
+
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            Debug.Log("[BGMManager] BGMManagerを初期化しました");
+            Debug.Log($"[BGMManager] AudioSource設定完了 - Volume: {bgmVolume}");
+            return;
+        }
+
+        if (Instance == this)
+            return;
+
+        // EnsureInstance で先行生成された「クリップ未設定」の側より、Inspector で設定した側を優先
+        if (HasAnyClipConfigured() && !Instance.HasAnyClipConfigured())
+        {
+            BGMManager stale = Instance;
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            if (stale != null && stale != this)
+                Destroy(stale.gameObject);
+            Debug.Log("[BGMManager] Inspector設定済みのBGMManagerに差し替えました（先行ランタイム生成の救済）");
+            return;
+        }
+
+        Debug.Log("[BGMManager] 既存のBGMManagerが存在するため、このインスタンスを破棄します");
+        Destroy(gameObject);
     }
 
     /// <summary>
@@ -82,11 +175,14 @@ public class BGMManager : MonoBehaviour
             return;
         }
 
+        if (!HasAnyClipConfigured())
+            TryFillClipsFromLibrary();
+
         AudioClip clipToPlay = GetBGMClip(bgmName);
         
         if (clipToPlay == null)
         {
-            Debug.LogWarning($"[BGMManager] BGMクリップが見つかりません: {bgmName}");
+            Debug.LogWarning($"[BGMManager] BGMクリップが見つかりません: {bgmName}（Resources の BGMAudioLibrary / BGMManager プレハブ、または Audio/BGM/{bgmName} を確認してください）");
             return;
         }
 
@@ -113,29 +209,40 @@ public class BGMManager : MonoBehaviour
     /// <summary>
     /// BGM名からAudioClipを取得
     /// </summary>
+    private static AudioClip TryLoadFromResources(string relativePath)
+    {
+        return Resources.Load<AudioClip>(relativePath);
+    }
+
     private AudioClip GetBGMClip(string bgmName)
     {
         switch (bgmName.ToLower())
         {
             case "battlenormal":
             case "battle_normal":
-                return battleNormalBGM;
-                
+                if (battleNormalBGM != null)
+                    return battleNormalBGM;
+                return TryLoadFromResources("Audio/BGM/BattleNormal")
+                    ?? TryLoadFromResources("BGM/BattleNormal");
+
             case "battleboss":
             case "battle_boss":
-                return battleBossBGM;
-                
+                if (battleBossBGM != null)
+                    return battleBossBGM;
+                return TryLoadFromResources("Audio/BGM/BattleBoss")
+                    ?? TryLoadFromResources("BGM/BattleBoss");
+
             case "field":
-                return fieldBGM;
-                
+                if (fieldBGM != null)
+                    return fieldBGM;
+                return TryLoadFromResources("Audio/BGM/Field")
+                    ?? TryLoadFromResources("BGM/Field");
+
             default:
-                // Resourcesフォルダから動的に読み込む試み
-                AudioClip clip = Resources.Load<AudioClip>($"Audio/BGM/{bgmName}");
+                AudioClip clip = TryLoadFromResources($"Audio/BGM/{bgmName}");
                 if (clip != null)
-                {
                     return clip;
-                }
-                return null;
+                return TryLoadFromResources($"BGM/{bgmName}");
         }
     }
 
