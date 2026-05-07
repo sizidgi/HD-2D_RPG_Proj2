@@ -1187,12 +1187,17 @@ public class ConversationUI : MonoBehaviour
                         Debug.Log($"[ConversationUI] ボスエネミーデータ取得成功: {bossEnemyData.Count}体");
                         Debug.Log($"[ConversationUI] 戦闘中イベント数: {battleEvent.battleMidEvents.Count}");
                         
+                        // BGM名を決定（中ボスの場合は通常戦闘BGM）
+                        string bgmName = battleEvent.isMidBossBattle ? "BattleNormal" : "BattleBoss";
+                        
                         // ボス戦として開始（戦闘中イベント付き）
                         GameManager.Instance.StartBossBattle(
                             playerPosition,
                             bossEnemyData,
                             battleEvent.battleMidEvents,
-                            battleEvent.postBattleDialogueCSV
+                            battleEvent.postBattleDialogueCSV,
+                            bgmName,
+                            battleEvent.isMidBossBattle  // 中ボスフラグを渡す
                         );
                     }
                     else

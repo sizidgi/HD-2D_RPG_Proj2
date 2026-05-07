@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   charactername: "\u5206\u8EAB\u4F53"
   characterIcon: {fileID: 21300000, guid: ec7576a0b4a852749968ece971a9c938, type: 3}
+  standingImage: {fileID: 0}
   enemyCheckFlag: 1
   hp: 100
   mp: 150
@@ -25,12 +26,12 @@ MonoBehaviour:
   maxMp: 150
   exp: 300
   level: 2
-  CharacterObj: {fileID: 3533095128167565586, guid: b4e3abb254a7df24a90863cea43795e0,
+  CharacterObj: {fileID: 3533095128167565586, guid: fbd948d6dd5201c4a8d721da484868a9,
     type: 3}
   skills:
   - {fileID: 11400000, guid: d70e1b715df4f894a8016eb2fc572a5e, type: 2}
   - {fileID: 11400000, guid: 6d260412a30bc9547a68724e18d84cde, type: 2}
   - {fileID: 11400000, guid: 5136630a42a51654cb4524ce59f57db7, type: 2}
-  CharacterTransfrom: {x: 1, y: 0, z: 5.5}
+  CharacterTransfrom: {x: 3, y: 0, z: 4.5}
   StatusFlag: 0
   levelUpTable: {fileID: 0}
