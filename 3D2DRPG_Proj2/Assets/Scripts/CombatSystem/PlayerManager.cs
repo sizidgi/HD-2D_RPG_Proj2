@@ -526,7 +526,6 @@ public class PlayerManager : MonoBehaviour
         if (selectedSkill.targetScope == TargetScope.All||selectedCharacter.AllAttack)
         {
             Debug.Log("全体攻撃として処理します");
-            selectedCharacter.mp -= selectedSkill.mpCost;
             foreach (var enemy in enemies)
             {
                 bool EnemyDefeat = ApplyAttack(enemy, selectedSkill);
