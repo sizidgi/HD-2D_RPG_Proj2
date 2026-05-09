@@ -24,7 +24,7 @@ MonoBehaviour:
   spd: 32
   maxHp: 300
   maxMp: 100
-  exp: 23
+  exp: 0
   level: 10
   CharacterObj: {fileID: 2902170939649211471, guid: 7d3626a89213d394e991f82d2d99234b,
     type: 3}
@@ -34,8 +34,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cc26fe1bc78f94446bc96241748ead34, type: 2}
   - {fileID: 11400000, guid: 851eca6ae872a7a4399d866ec7b47c8b, type: 2}
   - {fileID: 11400000, guid: 345941754ce052948a4d54cf3e7545d7, type: 2}
-  - {fileID: 11400000, guid: d3af36cc263dc974795e1215d63c6aa2, type: 2}
-  - {fileID: 11400000, guid: 7ad96a3f3e31e27488a5775ec77a9ad5, type: 2}
   CharacterTransfrom: {x: 2, y: 0, z: -1.5}
   StatusFlag: 0
   levelUpTable: {fileID: 11400000, guid: 8f145ecd96842a84e92a8ff996b356ed, type: 2}

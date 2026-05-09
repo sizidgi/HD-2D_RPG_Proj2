@@ -267,6 +267,7 @@ public class PlayerController : MonoBehaviour
             {
                 var enemyDataList = enemyAI.GetEnemyData();
                 int encounterGroupId = enemyAI.GetEncounterGroupId();
+                string bgmName = enemyAI.GetBGMName();
                 
                 if (enemyDataList != null && enemyDataList.Count > 0 && encounterGroupId >= 0)
                 {
@@ -278,13 +279,13 @@ public class PlayerController : MonoBehaviour
                         DisableAllEnemies();
                         Debug.Log($"[PlayerController] グループID={encounterGroupId}と戦ったことがある。クイックタイム戦闘開始");
                         // クイックタイム戦闘を開始
-                        StartQuickTimeCombat(enemy, enemyDataList, encounterGroupId);
+                        StartQuickTimeCombat(enemy, enemyDataList, encounterGroupId, bgmName);
                     }
                     else
                     {
                         Debug.Log($"[PlayerController] グループID={encounterGroupId}は初遭遇。通常戦闘シーンへ遷移");
                         // 通常の戦闘シーンに移動
-                        StartNormalBattle(enemy, enemyDataList, encounterGroupId);
+                        StartNormalBattle(enemy, enemyDataList, encounterGroupId, bgmName);
                     }
                 }
                 else
@@ -326,12 +327,12 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// クイックタイム戦闘を開始
     /// </summary>
-    private void StartQuickTimeCombat(GameObject enemyObject, List<CharacterData> enemyDataList, int encounterGroupId)
+    private void StartQuickTimeCombat(GameObject enemyObject, List<CharacterData> enemyDataList, int encounterGroupId, string bgmName = "BattleNormal")
     {
         if (quickTimeCombatUI == null)
         {
             Debug.LogWarning("QuickTimeCombatUIが設定されていません。通常戦闘に移行します。");
-            StartNormalBattle(enemyObject, enemyDataList, encounterGroupId);
+            StartNormalBattle(enemyObject, enemyDataList, encounterGroupId, bgmName);
             return;
         }
         
@@ -361,7 +362,7 @@ public class PlayerController : MonoBehaviour
             else
             {
                 // タイミング失敗：通常戦闘に移行（遷移するのでフラグリセット不要）
-                StartNormalBattle(enemyObject, enemyDataList, encounterGroupId);
+                StartNormalBattle(enemyObject, enemyDataList, encounterGroupId, bgmName);
             }
             
             // クイックタイム戦闘終了後に全ての敵を再開
@@ -400,7 +401,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// 通常の戦闘を開始
     /// </summary>
-    private void StartNormalBattle(GameObject enemyObject, List<CharacterData> enemyDataList, int encounterGroupId)
+    private void StartNormalBattle(GameObject enemyObject, List<CharacterData> enemyDataList, int encounterGroupId, string bgmName = "BattleNormal")
     {
         if (GameManager.Instance != null)
         {
@@ -417,9 +418,10 @@ public class PlayerController : MonoBehaviour
             // グループIDを記録（初遭遇時に記録）
             GameManager.Instance.RecordGroupDefeat(encounterGroupId);
             
-            Debug.Log($"[PlayerController] 通常戦闘開始: グループID={encounterGroupId}");
+            Debug.Log($"[PlayerController] 通常戦闘開始: グループID={encounterGroupId}, BGM={bgmName}");
             
-            GameManager.Instance.StartBattle(transform.position, enemyObject);
+            // BGM情報を含めて戦闘開始
+            GameManager.Instance.StartBattleWithEnemyData(transform.position, enemyDataList, bgmName);
         }
         else
         {

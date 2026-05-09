@@ -29,6 +29,7 @@ public class Respawn : MonoBehaviour
     {
         public int no;
         public List<string> enemyNames = new List<string>();
+        public string bgmName = "BattleNormal"; // 戦闘BGM名（デフォルトは通常戦闘BGM）
     }
 
     void Start()
@@ -114,7 +115,26 @@ public class Respawn : MonoBehaviour
             if (!int.TryParse(values[0].Trim(), out int groupNo)) continue;
             
             List<string> enemyNames = new List<string>();
-            for (int j = 1; j < values.Length; j++)
+            string bgmName = "BattleNormal"; // デフォルトBGM
+            
+            // 最後の列がBGM名かどうかをチェック
+            int enemyEndIndex = values.Length;
+            
+            // 最後の列が敵名ではなくBGM名かどうか判定
+            // 敵名は通常日本語で、BGM名は英数字（"BattleNormal", "BattleBoss"など）
+            if (values.Length > 2)
+            {
+                string lastValue = values[values.Length - 1].Trim();
+                // 最後の列が空でなく、英数字のみの場合はBGM名として扱う
+                if (!string.IsNullOrEmpty(lastValue) && System.Text.RegularExpressions.Regex.IsMatch(lastValue, @"^[a-zA-Z0-9_]+$"))
+                {
+                    bgmName = lastValue;
+                    enemyEndIndex = values.Length - 1;
+                }
+            }
+            
+            // 敵名を読み込む（BGM列を除く）
+            for (int j = 1; j < enemyEndIndex; j++)
             {
                 string enemyName = values[j].Trim();
                 if (!string.IsNullOrEmpty(enemyName))
@@ -128,8 +148,14 @@ public class Respawn : MonoBehaviour
                 encounterTable.Add(new EnemySpawnGroup
                 {
                     no = groupNo,
-                    enemyNames = enemyNames
+                    enemyNames = enemyNames,
+                    bgmName = bgmName
                 });
+                
+                if (enableDebugLog)
+                {
+                    Debug.Log($"[Respawn] エンカウント登録: No.{groupNo}, 敵数:{enemyNames.Count}, BGM:{bgmName}");
+                }
             }
         }
         
@@ -248,6 +274,7 @@ public class Respawn : MonoBehaviour
         if (enemyAI != null)
         {
             enemyAI.SetEncounterGroupId(selectedGroup.no);
+            enemyAI.SetBGMName(selectedGroup.bgmName);
             
             List<CharacterData> enemyDataList = new List<CharacterData>();
             foreach (string enemyName in selectedGroup.enemyNames)

@@ -221,6 +221,31 @@ public class TurnManager : MonoBehaviour
                     turnNumber = (turnNumber + 1) % sortedTurnList.Count;
                     continue;
                 }
+                
+                // 行動開始前にそのキャラクターの継続ダメージ処理
+                var character = nextCharacterStatus.GetComponent<Character>();
+                if (character != null)
+                {
+                    var buffManager = character.GetBuffManager();
+                    if (buffManager != null)
+                    {
+                        buffManager.TickTurn(); // 継続ダメージ処理
+                    }
+                    
+                    // 継続ダメージで倒れた場合はスキップ
+                    if (character.hp <= 0)
+                    {
+                        Debug.Log($"[TurnManager] {character.charactername} は継続ダメージで行動不能になりました");
+                        turnFlag = true;
+                        turnNumber++;
+                        if (turnNumber < sortedTurnList.Count)
+                        {
+                            UIManager.Instance.NextTurn();
+                        }
+                        continue;
+                    }
+                }
+                
                 // True:Enemy False:Player                
                 if (nextCharacterStatus.GetComponent<Character>().enemyCheckFlag)
                 {
@@ -306,9 +331,6 @@ public class TurnManager : MonoBehaviour
             // ラウンド終了処理
             turnNumber = 0;
 
-            // 全キャラクターのバフターン経過処理
-            ProcessEndOfRoundBuffs();
-
             // 次のラウンドのターンリストを生成
             GenerateNextRoundTurnList();
 
@@ -344,24 +366,6 @@ public class TurnManager : MonoBehaviour
     public bool IsBattlePaused()
     {
         return battlePaused;
-    }
-
-    // 新規メソッド: ラウンド終了時のバフ処理
-    private void ProcessEndOfRoundBuffs()
-    {
-        foreach (var obj in turnList)
-        {
-            if (obj == null) continue;
-            var character = obj.GetComponent<Character>();
-            if (character != null)
-            {
-                var buffManager = character.GetBuffManager();
-                if (buffManager != null)
-                {
-                    buffManager.TickTurn(); // バフのターン経過処理
-                }
-            }
-        }
     }
 
     // 新規メソッド: 次ラウンドのターンリスト生成

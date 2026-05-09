@@ -104,7 +104,13 @@ public class GameManager : MonoBehaviour
     [NonSerialized]
     public bool isBossBattle = false;  // ボス戦フラグ
     [NonSerialized]
+    public bool isMidBossBattle = false;  // 中ボス戦フラグ
+    [NonSerialized]
     public List<BattleMidEvent> battleMidEvents = new List<BattleMidEvent>();
+    
+    [Header("戦闘BGM")]
+    [NonSerialized]
+    public string currentBattleBGM = "BattleNormal";  // 現在の戦闘BGM名
 
     [Header("経験値・レベル管理")]
     [SerializeField] private Dictionary<int, int> ExpTable = new Dictionary<int, int>();
@@ -241,6 +247,21 @@ public class GameManager : MonoBehaviour
         // シーン名に基づいてゲーム状態を更新
         UpdateGameStateFromScene(scene.name);
         
+        // 戦闘シーンに入った時の処理
+        if (scene.name == battleSceneName)
+        {
+            BGMManager bgm = BGMManager.EnsureInstance();
+            // 真のボス戦（中ボスではない）の場合のみボスBGMを再生
+            string bgmToPlay = (isBossBattle && !isMidBossBattle) ? "BattleBoss" : currentBattleBGM;
+
+            bgm.PlayBGM(bgmToPlay, fade: true);
+
+            if (showDebugLog)
+            {
+                Debug.Log($"[GameManager] 戦闘BGM再生: {bgmToPlay} (isBossBattle={isBossBattle}, isMidBossBattle={isMidBossBattle})");
+            }
+        }
+        
         // GameFieldシーンに戻った時の処理
         if (scene.name == gameFieldSceneName)
         {
@@ -254,6 +275,15 @@ public class GameManager : MonoBehaviour
                 
                 Destroy(currentBattleEnemy);
                 currentBattleEnemy = null;
+            }
+            
+            // フィールドBGMを再生
+            BGMManager bgm = BGMManager.EnsureInstance();
+            bgm.PlayBGM("Field", fade: true);
+
+            if (showDebugLog)
+            {
+                Debug.Log("[GameManager] フィールドBGM再生");
             }
             
             // 戦闘後会話イベントをチェック
@@ -617,7 +647,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// バトル開始（CharacterDataを受け取るオーバーロード）
     /// </summary>
-    public void StartBattleWithEnemyData(Vector3 playerPosition, List<CharacterData> enemyCharacterDataList)
+    public void StartBattleWithEnemyData(Vector3 playerPosition, List<CharacterData> enemyCharacterDataList, string bgmName = "BattleNormal")
     {
         if (isTransitioning || !enableBattleTransition) return;
 
@@ -629,10 +659,13 @@ public class GameManager : MonoBehaviour
         {
             EnemyData.AddRange(enemyCharacterDataList);
         }
+        
+        // BGM名を設定
+        currentBattleBGM = bgmName;
 
         if (showDebugLog)
         {
-            Debug.Log($"GameManager: バトル開始 - 敵数: {enemyCharacterDataList?.Count ?? 0}");
+            Debug.Log($"GameManager: バトル開始 - 敵数: {enemyCharacterDataList?.Count ?? 0}, BGM: {bgmName}");
         }
 
         OnBattleStart?.Invoke();
@@ -664,10 +697,13 @@ public class GameManager : MonoBehaviour
         Vector3 playerPosition, 
         List<CharacterData> enemyData, 
         List<BattleMidEvent> midEvents = null,
-        string postBattleDialogue = "")
+        string postBattleDialogue = "",
+        string bgmName = "BattleBoss",
+        bool isMidBoss = false)
     {
         // ボス戦フラグを設定
         isBossBattle = true;
+        isMidBossBattle = isMidBoss;
         
         // 戦闘中イベントを設定
         battleMidEvents.Clear();
@@ -685,11 +721,11 @@ public class GameManager : MonoBehaviour
         
         if (showDebugLog)
         {
-            Debug.Log($"[GameManager] ボス戦開始: 戦闘中イベント{battleMidEvents.Count}個, 戦闘後会話: {postBattleDialogue}");
+            Debug.Log($"[GameManager] ボス戦開始: 戦闘中イベント{battleMidEvents.Count}個, 戦闘後会話: {postBattleDialogue}, BGM: {bgmName}, 中ボス: {isMidBoss}");
         }
         
-        // 通常の戦闘開始処理
-        StartBattleWithEnemyData(playerPosition, enemyData);
+        // 通常の戦闘開始処理（BGM付き）
+        StartBattleWithEnemyData(playerPosition, enemyData, bgmName);
     }
     
     /// <summary>
@@ -698,6 +734,7 @@ public class GameManager : MonoBehaviour
     public void ClearBossBattleData()
     {
         isBossBattle = false;
+        isMidBossBattle = false;
         battleMidEvents.Clear();
         
         if (showDebugLog)

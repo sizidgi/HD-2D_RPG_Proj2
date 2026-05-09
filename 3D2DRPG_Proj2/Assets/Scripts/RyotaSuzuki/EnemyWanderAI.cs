@@ -38,6 +38,7 @@ public class EnemyWanderAI : MonoBehaviour
     [Header("エネミー情報")]
     [SerializeField] private List<CharacterData> enemyData;    // エネミーデータリスト
     [SerializeField] private int encounterGroupId = -1;        // エンカウントグループID
+    [SerializeField] private string bgmName = "BattleNormal";  // 戦闘BGM名
 
     [Header("イベントフラグ")]
     [SerializeField]private string detectionFlagName = "EnemyDetectedPlayer"; // プレイヤー検知フラグ名
@@ -156,6 +157,22 @@ public class EnemyWanderAI : MonoBehaviour
     public void SetEnemyData(List<CharacterData> data)
     {
         enemyData = data;
+    }
+
+    /// <summary>
+    /// BGM名を取得
+    /// </summary>
+    public string GetBGMName()
+    {
+        return bgmName;
+    }
+
+    /// <summary>
+    /// BGM名を設定（Respawnから呼ばれる）
+    /// </summary>
+    public void SetBGMName(string name)
+    {
+        bgmName = name;
     }
 
 
