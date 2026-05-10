@@ -155,6 +155,11 @@ public class ConversationUI : MonoBehaviour
 
     void LoadDialogueFromCSV()
     {
+        StartCoroutine(LoadDialogueFromCSVCoroutine());
+    }
+
+    IEnumerator LoadDialogueFromCSVCoroutine()
+    {
         string csvFolderPath = Path.Combine(Application.streamingAssetsPath, csvFolderName);
         string filePath = Path.Combine(csvFolderPath, csvFileName);
 
@@ -163,25 +168,41 @@ public class ConversationUI : MonoBehaviour
         Debug.Log($"ScenarioCSVフォルダパス: {csvFolderPath}");
         Debug.Log($"CSVファイルパス: {filePath}");
 
-        // StreamingAssetsフォルダが存在しない場合は作成
-        if (!Directory.Exists(Application.streamingAssetsPath))
+        // UnityWebRequest を使用（ビルド後も動作する）
+        string uri = filePath;
+        
+        // プラットフォームに応じて URI を調整
+        #if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_WEBGL)
+        uri = Path.Combine(Application.streamingAssetsPath, csvFolderName, csvFileName);
+        #else
+        // Windows/Mac/Linux では file:// プロトコルが必要
+        if (!uri.StartsWith("file://"))
         {
-            Directory.CreateDirectory(Application.streamingAssetsPath);
+            uri = "file://" + uri;
         }
+        #endif
 
-        // ScenarioCSVフォルダが存在しない場合は作成
-        if (!Directory.Exists(csvFolderPath))
-        {
-            Directory.CreateDirectory(csvFolderPath);
-            Debug.Log($"ScenarioCSVフォルダを作成しました: {csvFolderPath}");
-        }
+        Debug.Log($"[ConversationUI] CSV読み込み URI: {uri}");
 
-        if (File.Exists(filePath))
+        using (UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get(uri))
         {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+            {
+                Debug.LogWarning($"[ConversationUI] CSVファイルが見つかりません: {uri}");
+                Debug.LogWarning($"[ConversationUI] エラー: {www.error}");
+                LoadTestDialogues(); // テストデータを使用
+                yield break;
+            }
+
             try
             {
-                string[] lines = File.ReadAllLines(filePath);
+                string csvText = www.downloadHandler.text;
+                string[] lines = csvText.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
                 dialogues.Clear();
+
+                Debug.Log($"[ConversationUI] CSV読み込み成功: {lines.Length}行");
 
                 // ヘッダー行をスキップ（1行目）
                 for (int i = 1; i < lines.Length; i++)
@@ -196,19 +217,14 @@ public class ConversationUI : MonoBehaviour
                     }
                 }
 
-                Debug.Log($"CSVファイルから{dialogues.Count}行の会話データを読み込みました。");
+                Debug.Log($"[ConversationUI] CSVファイルから{dialogues.Count}行の会話データを読み込みました。");
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"CSVファイルの読み込みエラー: {e.Message}");
+                Debug.LogError($"[ConversationUI] CSVファイルの読み込みエラー: {e.Message}");
+                Debug.LogError($"[ConversationUI] スタックトレース: {e.StackTrace}");
                 LoadTestDialogues(); // エラー時はテストデータを使用
             }
-        }
-        else
-        {
-            Debug.LogWarning($"CSVファイルが見つかりません: {filePath}");
-            CreateSampleCSV(filePath); // サンプルCSVを作成
-            LoadTestDialogues(); // テストデータを使用
         }
     }
 
@@ -382,11 +398,14 @@ public class ConversationUI : MonoBehaviour
 
     void LoadTestDialogues()
     {
+        Debug.Log("[ConversationUI] LoadTestDialogues呼び出し - テストデータを使用します");
+        
         // テスト用データをDialogueDataに変換
         dialogues.Clear();
 
         if (testDialogues.Count == 0)
         {
+            Debug.LogWarning("[ConversationUI] testDialoguesが空です。デフォルトのテストデータを追加します。");
             testDialogues.Add("あ");
             testDialogues.Add("い");
             testDialogues.Add("う");
@@ -397,11 +416,19 @@ public class ConversationUI : MonoBehaviour
         {
             dialogues.Add(new DialogueData("システム", text));
         }
+        
+        Debug.Log($"[ConversationUI] テストデータ読み込み完了: {dialogues.Count}件");
     }
 
     public void StartDialogue(bool DisabledEnemyFlg)
     {
-        if (dialogues.Count == 0) return;
+        Debug.Log($"[ConversationUI] StartDialogue呼び出し: dialogues.Count={dialogues.Count}");
+        
+        if (dialogues.Count == 0)
+        {
+            Debug.LogWarning("[ConversationUI] 会話データが0件のため、StartDialogueを中断します。CSVの読み込みに失敗している可能性があります。");
+            return;
+        }
 
         currentDialogueIndex = 0;
         dialoguePanel.SetActive(true);
@@ -429,7 +456,13 @@ public class ConversationUI : MonoBehaviour
     //StartDialogueのオーバーロード、ムービを使用するが敵が存在しないフィールドではフラグの受け渡しが不必要なため。
     public void StartDialogue()
     {
-        if (dialogues.Count == 0) return;
+        Debug.Log($"[ConversationUI] StartDialogue呼び出し（オーバーロード）: dialogues.Count={dialogues.Count}");
+        
+        if (dialogues.Count == 0)
+        {
+            Debug.LogWarning("[ConversationUI] 会話データが0件のため、StartDialogueを中断します。CSVの読み込みに失敗している可能性があります。");
+            return;
+        }
 
         currentDialogueIndex = 0;
         dialoguePanel.SetActive(true);
@@ -453,8 +486,7 @@ public class ConversationUI : MonoBehaviour
         Debug.Log($"========== StartDialogueWithCSV が呼ばれました！CSV: {csvFile} ==========");
         csvFileName = csvFile;
         currentPlayableDirector = null; // リセット
-        ReloadCSV();
-        StartDialogue(true);
+        StartCoroutine(ReloadCSVAndStartDialogue(true));
     }
 
     /// <summary>
@@ -465,8 +497,28 @@ public class ConversationUI : MonoBehaviour
         Debug.Log($"========== StartDialogueWithCSVAndTimeline が呼ばれました！CSV: {csvFile} ==========");
         csvFileName = csvFile;
         currentPlayableDirector = director;
-        ReloadCSV();
-        StartDialogue();
+        StartCoroutine(ReloadCSVAndStartDialogue(false));
+    }
+
+    /// <summary>
+    /// CSV読み込み完了後に会話を開始
+    /// </summary>
+    private IEnumerator ReloadCSVAndStartDialogue(bool disableEnemies)
+    {
+        if (useCSVFile)
+        {
+            yield return StartCoroutine(LoadDialogueFromCSVCoroutine());
+            Debug.Log($"[ConversationUI] CSV読み込み完了。dialogues.Count={dialogues.Count}");
+        }
+
+        if (disableEnemies)
+        {
+            StartDialogue(true);
+        }
+        else
+        {
+            StartDialogue();
+        }
     }
 
     void ShowDialogue(int index)
