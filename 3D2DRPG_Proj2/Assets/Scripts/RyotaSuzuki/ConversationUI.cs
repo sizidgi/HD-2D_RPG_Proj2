@@ -431,6 +431,25 @@ public class ConversationUI : MonoBehaviour
         }
 
         currentDialogueIndex = 0;
+        
+        // 前回のタイピングコルーチンを停止
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+            isTyping = false;
+        }
+        
+        // 前回の表示内容をクリア
+        if (dialogueText != null)
+        {
+            dialogueText.text = "";
+        }
+        if (characterNameText != null)
+        {
+            characterNameText.text = "";
+        }
+        
         dialoguePanel.SetActive(true);
         characterImage.enabled = true;
         // パネルをフェードイン
@@ -465,6 +484,25 @@ public class ConversationUI : MonoBehaviour
         }
 
         currentDialogueIndex = 0;
+        
+        // 前回のタイピングコルーチンを停止
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+            isTyping = false;
+        }
+        
+        // 前回の表示内容をクリア
+        if (dialogueText != null)
+        {
+            dialogueText.text = "";
+        }
+        if (characterNameText != null)
+        {
+            characterNameText.text = "";
+        }
+        
         dialoguePanel.SetActive(true);
         characterImage.enabled = true;
         // パネルをフェードイン
@@ -526,6 +564,12 @@ public class ConversationUI : MonoBehaviour
         if (index >= dialogues.Count) return;
 
         DialogueData data = dialogues[index];
+        
+        // 表示前にテキストをクリア（前の会話が残らないように）
+        if (dialogueText != null)
+        {
+            dialogueText.text = "";
+        }
 
         // キャラクター名設定
         if (characterNameText != null)

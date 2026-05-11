@@ -261,9 +261,8 @@ public class SimpleEventTrigger : MonoBehaviour
             //全敵を停止
             DisableAllEnemies();
 
-            conversationUI.csvFileName = csvFileName;
-            conversationUI.ReloadCSV();
-            conversationUI.StartDialogue(disableEnemies);
+            // CSV読み込み完了を待ってから会話を開始
+            conversationUI.StartDialogueWithCSV(csvFileName);
             
             if (showDebugLog)
             {

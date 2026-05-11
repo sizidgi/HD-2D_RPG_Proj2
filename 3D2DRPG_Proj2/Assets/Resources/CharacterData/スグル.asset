@@ -18,7 +18,7 @@ MonoBehaviour:
   enemyCheckFlag: 0
   hp: 300
   mp: 100
-  atk: 18
+  atk: 999
   Int: 10
   def: 20
   spd: 32

@@ -591,8 +591,8 @@ public class TurnManager : MonoBehaviour
                 }
             }
         }
-        //プレイヤーデータをGameManagerに保存
-        List<CharacterData> playerDataList = new List<CharacterData>();
+        
+        // 戦闘終了時に全キャラクターのステータス（HP/MP/EXP/Level等）をCharacterDataに保存
         foreach (var playerObj in players)
         {
             if (playerObj != null)
@@ -600,11 +600,11 @@ public class TurnManager : MonoBehaviour
                 var character = playerObj.GetComponent<Character>();
                 if (character != null && !character.enemyCheckFlag)
                 {
-                    playerDataList.Add(character.GetCharacterData());
+                    character.GetCharacterData(); // CharacterDataを更新
+                    Debug.Log($"[TurnManager] {character.charactername} のステータスを保存: HP={character.hp}/{character.maxHp}, MP={character.mp}/{character.maxMp}, Lv={character.level}, EXP={character.exp}");
                 }
             }
         }
-        GameManager.Instance.PlayerDataSetStatus(playerDataList);
     }
     
     /// <summary>

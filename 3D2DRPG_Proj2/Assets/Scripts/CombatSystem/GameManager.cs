@@ -179,7 +179,21 @@ public class GameManager : MonoBehaviour
     public void PlayerDataSetStatus(List<CharacterData> characterData)
     {
         PlayerData.Clear();
-        PlayerData.AddRange(characterData);
+        
+        // ScriptableObjectを複製してランタイムインスタンスとして追加
+        foreach (var data in characterData)
+        {
+            if (data != null)
+            {
+                var runtimeCopy = Instantiate(data);
+                PlayerData.Add(runtimeCopy);
+            }
+        }
+        
+        if (showDebugLog)
+        {
+            Debug.Log($"[GameManager] PlayerData初期化完了: {PlayerData.Count}人のキャラクターを複製して追加");
+        }
     }
     public void EnemyDataClear()
     {
@@ -662,6 +676,9 @@ public class GameManager : MonoBehaviour
         
         // BGM名を設定
         currentBattleBGM = bgmName;
+        
+        // 戦闘開始前のキャラクターステータスを記録
+        SavePreBattleSnapshots();
 
         if (showDebugLog)
         {
@@ -921,14 +938,16 @@ public class GameManager : MonoBehaviour
             return;
         }
         
-        // 既にパーティーに加入しているかチェック
-        if (PlayerData.Contains(character))
+        // 既にパーティーに加入しているかチェック（名前で判定）
+        if (PlayerData.Exists(c => c.charactername == character.charactername))
         {
             Debug.LogWarning($"[GameManager] {character.charactername} は既にパーティーに加入しています");
             return;
         }
         
-        PlayerData.Add(character);
+        // ScriptableObjectを複製してランタイムインスタンスとして追加
+        var runtimeCopy = Instantiate(character);
+        PlayerData.Add(runtimeCopy);
         
         if (showDebugLog)
         {
@@ -947,13 +966,16 @@ public class GameManager : MonoBehaviour
             return;
         }
         
-        if (!PlayerData.Contains(character))
+        // 名前で検索（複製されたインスタンスなので、参照比較ではなく名前で判定）
+        var targetCharacter = PlayerData.Find(c => c.charactername == character.charactername);
+        
+        if (targetCharacter == null)
         {
             Debug.LogWarning($"[GameManager] {character.charactername} はパーティーに加入していません");
             return;
         }
         
-        PlayerData.Remove(character);
+        PlayerData.Remove(targetCharacter);
         
         if (showDebugLog)
         {
@@ -1004,7 +1026,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public bool IsInParty(CharacterData character)
     {
-        return character != null && PlayerData.Contains(character);
+        // 複製されたインスタンスなので、名前で判定
+        return character != null && PlayerData.Exists(c => c.charactername == character.charactername);
     }
     
     /// <summary>

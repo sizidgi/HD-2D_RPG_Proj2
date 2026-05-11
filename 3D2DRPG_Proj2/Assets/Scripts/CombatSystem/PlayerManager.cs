@@ -526,6 +526,14 @@ public class PlayerManager : MonoBehaviour
         if (selectedSkill.targetScope == TargetScope.All||selectedCharacter.AllAttack)
         {
             Debug.Log("全体攻撃として処理します");
+            
+            //相手に対するバフが無ければmp消費(バフありだとバフの処理で更にmpが同じく引かれてしまうため)
+            if(selectedSkill.buffEffect.Count == 0)
+            {
+                selectedCharacter.mp -= selectedSkill.mpCost;
+                Debug.Log("バフがないのでMPを引きます");
+            }
+                
             foreach (var enemy in enemies)
             {
                 bool EnemyDefeat = ApplyAttack(enemy, selectedSkill);

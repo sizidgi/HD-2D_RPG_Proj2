@@ -61,14 +61,14 @@ public class ResultWin : MonoBehaviour
         {
             if (playerChar == null) continue;
             
-            Debug.Log($"[ResultWin]: {playerChar.charactername}");
+            Debug.Log($"[ResultWin] 処理開始: {playerChar.charactername} 現在Lv.{playerChar.level} EXP:{playerChar.exp}");
             
             
             var snapshot = GameManager.Instance.GetPreBattleSnapshot(playerChar.charactername);
             
             if (snapshot == null)
             {
-                Debug.LogWarning($"[ResultWin] {playerChar.charactername}");
+                Debug.LogError($"[ResultWin] スナップショットが見つかりません: {playerChar.charactername} - フォールバック処理を使用（戦闘後のレベル {playerChar.level} を使用するため不正確）");
                 
                 snapshot = new GameManager.PreBattleSnapshot
                 {
@@ -79,8 +79,12 @@ public class ResultWin : MonoBehaviour
                     totalExp = GameManager.Instance.CalculateTotalExp(playerChar.level, 0)
                 };
             }
+            else
+            {
+                Debug.Log($"[ResultWin] スナップショット取得成功: {playerChar.charactername} 戦闘前Lv.{snapshot.level} EXP:{snapshot.exp}/{snapshot.requiredExp}");
+            }
             
-            Debug.Log($"[ResultWin]  {playerChar.charactername} Lv.{snapshot.level} {snapshot.exp}/{snapshot.requiredExp}");
+            Debug.Log($"[ResultWin] アニメーション開始値: {playerChar.charactername} Lv.{snapshot.level} {snapshot.exp}/{snapshot.requiredExp}");
             
             Image expFill = null;
             TextMeshProUGUI expText = null;
@@ -125,7 +129,7 @@ public class ResultWin : MonoBehaviour
         int currentTotalExp = GameManager.Instance.CalculateTotalExp(character.level, character.exp);
         int gainedExp = currentTotalExp - snapshot.totalExp;
         
-        Debug.Log($"[ResultWin] {character.charactername} �퓬�O: Lv.{currentLevel} {currentExp}/{requiredExp}EXP �� �l��: +{gainedExp}EXP (�ݐ�: {snapshot.totalExp}��{currentTotalExp})");
+        Debug.Log($"[ResultWin] {character.charactername} : Lv.{currentLevel} {currentExp}/{requiredExp}EXP +{gainedExp}EXP{snapshot.totalExp}/{currentTotalExp})");
         
         if (levelText != null)
         {
@@ -148,17 +152,17 @@ public class ResultWin : MonoBehaviour
             yield break;
         }
         
-        int targetExp = currentExp + gainedExp;
+        int remainingExp = gainedExp; // 残りの獲得経験値
         
-        while (targetExp > 0)
+        while (remainingExp > 0)
         {
-            int expToGain = Mathf.Min(targetExp, requiredExp - currentExp);
+            int expToGain = Mathf.Min(remainingExp, requiredExp - currentExp);
             int finalExp = currentExp + expToGain;
             float targetRatio = requiredExp > 0 ? (float)finalExp / requiredExp : 0;
             
             float animDuration = expAnimationDuration * ((float)expToGain / Mathf.Max(gainedExp, 1));
             
-            Debug.Log($"[ResultWin]  {currentExp} {finalExp} / {requiredExp}");
+            Debug.Log($"[ResultWin]  {currentExp} → {finalExp} / {requiredExp} (獲得: +{expToGain})");
             
             yield return expFill.DOFillAmount(targetRatio, animDuration)
                 .SetEase(expAnimationEase)
@@ -173,7 +177,7 @@ public class ResultWin : MonoBehaviour
                 .WaitForCompletion();
             
             currentExp = finalExp;
-            targetExp -= expToGain;
+            remainingExp -= expToGain;
             
             if (currentExp >= requiredExp)
             {
