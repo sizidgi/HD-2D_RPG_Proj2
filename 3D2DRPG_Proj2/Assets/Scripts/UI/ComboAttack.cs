@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System;
+using System.Collections;
 public class ComboAttack : MonoBehaviour
 {
     //public Animator animator;
@@ -53,7 +54,7 @@ public class ComboAttack : MonoBehaviour
         if (timingUI.isActive)
         {
             Debug.Log(timingUI.isActive);
-            NextAttack();
+            StartCoroutine(NextAttackCoroutine());
         }
         else
         {
@@ -74,7 +75,8 @@ public class ComboAttack : MonoBehaviour
         Debug.Log($"timingUI.Show() を呼び出します。timingTime: {timingTime}, timingWindowEnd: {timingWindowEnd}");
         timingUI.Show(timingTime,timingWindowEnd);
     }
-    // 次の攻撃へ
+
+    // 次の攻撃へ(コルーチンなしの場合)
     private void NextAttack()
     {
         comboStep++;
@@ -96,6 +98,46 @@ public class ComboAttack : MonoBehaviour
         timer = 0f;
         canInput = true;
     }
+
+    /// <summary>
+    /// 攻撃アニメーション待機用のコルーチン
+    /// </summary>
+    [SerializeField, Header("攻撃アニメーション待機時間")]
+    private float attackAnimationDuration = 0.8f;
+
+    private IEnumerator NextAttackCoroutine()
+    {
+        comboStep++;
+
+        Debug.Log($"[ComboAttack] NextAttack: comboStep={comboStep}, maxComboStep={maxComboStep}");
+
+        canInput = false; // 攻撃中は入力を無効化
+
+        // 攻撃を実行
+        bool EnemySurvival = onComboAttack.Invoke(0);
+
+        // アニメーションが終わるまで待機
+        yield return new WaitForSeconds(attackAnimationDuration);
+
+        if (!EnemySurvival)
+        {
+            EndCombo();
+            yield break;
+        }
+
+        // 最大コンボ数に達したらコンボ終了（攻撃実行後にチェック）
+        if (comboStep >= maxComboStep)
+        {
+            EndCombo();
+            yield break;
+        }
+
+        // 次のタイミングUIを表示
+        timingUI.Show(timingTime, timingWindowEnd);
+        timer = 0f;
+        canInput = true;
+    }
+
 
     private void EndCombo()
     {

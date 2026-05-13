@@ -754,14 +754,14 @@ public class PlayerManager : MonoBehaviour
     /// </summary>
     private IEnumerator ShowRengekiDamage(Character enemy, int damage, int hitCount)
     {
-        for (int i = 0; i < hitCount; i++)
+        for (int i = 1; i < hitCount; i++)
         {
             // 各ヒットの間に待機（連撃感を演出）
-            yield return new WaitForSeconds(0.15f);
             
+            yield return new WaitForSeconds(0.15f);
             if (enemy != null && enemy.CharacterObj != null && DamageEffectUI.Instance != null)
             {
-                Debug.Log($"連撃ダメージ処理 {i + 1}/{hitCount}");
+                Debug.Log($"連撃ダメージ処理 {i}/{hitCount}");
                 DamageEffectUI.Instance.ShowDamageEffectOnEnemy(enemy.CharacterObj, damage);
                 
                 // HPを減少
