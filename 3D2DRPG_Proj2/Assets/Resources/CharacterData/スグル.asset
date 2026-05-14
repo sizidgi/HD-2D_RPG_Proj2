@@ -22,9 +22,9 @@ MonoBehaviour:
   Int: 10
   def: 20
   spd: 32
-  maxHp: 300
+  maxHp: 303
   maxMp: 100
-  exp: 150
+  exp: 0
   level: 10
   CharacterObj: {fileID: 2902170939649211471, guid: 7d3626a89213d394e991f82d2d99234b,
     type: 3}
