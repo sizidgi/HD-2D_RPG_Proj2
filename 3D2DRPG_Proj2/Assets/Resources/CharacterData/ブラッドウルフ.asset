@@ -29,10 +29,9 @@ MonoBehaviour:
   CharacterObj: {fileID: 478247392656403969, guid: 032b251d9419d7b4283ce492c1c5483d,
     type: 3}
   skills:
-  - {fileID: 11400000, guid: 2884b17760395c84f829aade5ec86835, type: 2}
-  - {fileID: 11400000, guid: 2884b17760395c84f829aade5ec86835, type: 2}
-  - {fileID: 11400000, guid: 2884b17760395c84f829aade5ec86835, type: 2}
-  - {fileID: 11400000, guid: 2884b17760395c84f829aade5ec86835, type: 2}
+  - {fileID: 11400000, guid: 5ec63f48f85c5e04d978ab9a7c808b06, type: 2}
+  - {fileID: 11400000, guid: a1c28f7e9aac55042a70724cbad8e340, type: 2}
+  - {fileID: 11400000, guid: 1b3002f78791319478ef5f69dd5723ba, type: 2}
   CharacterTransfrom: {x: 3, y: 0, z: 4.5}
   StatusFlag: 0
   levelUpTable: {fileID: 0}

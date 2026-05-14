@@ -20,6 +20,6 @@ MonoBehaviour:
   duration: 0
   buffRange: 0
   sourceCharacter: {fileID: 0}
-  isSelfTarget: 0
-  statusEffect: 0
+  isSelfTarget: 1
+  statusEffect: 6
   magicAttackMultiplier: 1.5

@@ -25,15 +25,23 @@ MonoBehaviour:
   hitCount: 1
   criticalRate: 0
   accuracy: 1
+  isIntSansyou: 0
   targetScope: 0
-  statusEffect: 0
+  statusEffect: 15
   canCombo: 0
+  DamageUp: 0
+  ComboDamage: 0
   comboNextSkill: {fileID: 0}
   timingWindowStart: 0.3
   timingWindowEnd: 0.6
   comboDamageMultiplier: 1.2
   maxcombo: 3
   missCancel: 1
+  rengeki: 0
+  rengekiCount: 0
+  atkAftHeal: 0
+  wariaiHeal: 0
+  wariai: 0
   statusChance: 0
   buffEffect:
   - {fileID: 11400000, guid: 4f8f534fa453b1942a0a6f9d197f780c, type: 2}
@@ -41,3 +49,9 @@ MonoBehaviour:
   buffDuration: 0
   DamageBonusFlg: 0
   ZokuseiType: 1
+  isRandomEffect: 0
+  isOnlyOnece: 0
+  attackCount: 1
+  isUltimateSkill: 0
+  hasExtraActions: 0
+  extraActionCount: 2
