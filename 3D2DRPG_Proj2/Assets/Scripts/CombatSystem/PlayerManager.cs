@@ -409,9 +409,7 @@ public class PlayerManager : MonoBehaviour
     private IEnumerator AttackEndTick()
     {
         yield return new WaitForSeconds(1f); // 攻撃エフェクトの表示時間に合わせて待機
-        //攻撃後バフの設定
-        //バフ効果の管理
-        buffTurnManage();
+        // 継続ダメージ・バフターン減算は TurnManager（前に出る直前）のみで処理
         // キャラクターを開始位置に戻る
         selectedCharacter.CharacterObj.transform.DOMove(StartPosition, 1f).OnComplete(() =>
         {
@@ -903,8 +901,12 @@ public class PlayerManager : MonoBehaviour
             // エネミーが撃破された処理（成功時）
             //エネミーの体力を0にする
             enemy.hp = 0;
+            Debug.Log($"[PlayerManager] {enemy.charactername} を撃破しました");
             turnManager.enemys.Remove(enemy.gameObject);
             turnManager.turnList.Remove(enemy.gameObject);
+            
+            // ターン順リストからも削除
+            turnManager.RemoveCharacterFromTurnList(enemy);
             
             //エネミーのGameObjectを削除
             Destroy(enemy.CharacterObj);
@@ -1076,33 +1078,6 @@ public class PlayerManager : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// バフの効果ターン管理
-    /// 全てのキャラクターのバフを更新
-    /// </summary>
-    private void buffTurnManage()
-    {
-        // プレイヤーキャラクターのバフを更新
-        var players = getPlayer();
-        foreach (var player in players)
-        {
-            if (player != null)
-            {
-                player.TickBuffTurn();
-            }
-        }
-        
-        // 敵キャラクターのバフを更新
-        var enemies = getEnemy();
-        foreach (var enemy in enemies)
-        {
-            if (enemy != null)
-            {
-                enemy.TickBuffTurn();
-            }
-        }
-    }
-
     /// <summary>
     /// バフをセットする
     /// </summary>

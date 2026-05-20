@@ -308,11 +308,17 @@ public class TurnManager : MonoBehaviour
     public void RemoveCharacterFromTurnList(Character character)
     {
         var removeobj = character.CharacterObj;
-        //ターン順リストから削除
+        //ターン順リストから削除（全てのリストから削除する）
         if (sortedTurnList.Contains(removeobj))
+        {
             sortedTurnList.Remove(removeobj);
-        else if (nextTurnList.Contains(removeobj))
+            Debug.Log($"[TurnManager] {character.charactername} をsortedTurnListから削除");
+        }
+        if (nextTurnList.Contains(removeobj))
+        {
             nextTurnList.Remove(removeobj);
+            Debug.Log($"[TurnManager] {character.charactername} をnextTurnListから削除");
+        }
     }
 
     //ターン開始してフラグ

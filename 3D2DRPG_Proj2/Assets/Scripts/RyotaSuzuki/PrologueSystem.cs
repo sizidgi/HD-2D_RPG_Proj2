@@ -228,10 +228,24 @@ public class PrologueSystem : MonoBehaviour
     }
 
     /// <summary>
+    /// CSV内の &lt;br&gt; を改行に変換
+    /// </summary>
+    private string FormatLineBreaks(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        return text
+            .Replace("<br/>", "\n")
+            .Replace("<BR/>", "\n")
+            .Replace("<br>", "\n")
+            .Replace("<BR>", "\n");
+    }
+
+    /// <summary>
     /// タイプライター効果
     /// </summary>
     IEnumerator TypewriterEffect(string text)
     {
+        text = FormatLineBreaks(text);
         isTyping = true;
         isSkipping = false;
         prologueText.text = "";

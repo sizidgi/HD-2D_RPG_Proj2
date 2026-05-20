@@ -474,6 +474,7 @@ public class EnemyManager : MonoBehaviour
                     {
                         // プレイヤーが撃破された（HPが0に）
                         target.hp = 0;
+                        Debug.Log($"[EnemyManager] {target.charactername} が撃破されました");
                         // リストから削除
                         if (turnManager.players.Contains(target.gameObject))
                         {
@@ -483,6 +484,9 @@ public class EnemyManager : MonoBehaviour
                         {
                             turnManager.turnList.Remove(target.gameObject);
                         }
+                        // ターン順リストからも削除
+                        turnManager.RemoveCharacterFromTurnList(target);
+                        
                         // GameObject を削除
                         if (target.CharacterObj != null)
                         {
@@ -524,6 +528,9 @@ public class EnemyManager : MonoBehaviour
 
         var targethp = target.hp - power;
         target.hp = (int)math.floor(targethp);
+
+        // 被弾アニメーション再生
+        playerDamageAnimation(target);
 
         //スキルにバフがあるなら適用させる。
         if (skill != null && skill.buffEffect != null && skill.buffEffect.Count > 0)
@@ -616,6 +623,7 @@ public class EnemyManager : MonoBehaviour
         {
             // プレイヤーが撃破された（HPが0に）
             target.hp = 0;
+            Debug.Log($"[EnemyManager] {target.charactername} が撃破されました");
             // リストから削除
             if (turnManager.players.Contains(target.gameObject))
             {
@@ -625,6 +633,9 @@ public class EnemyManager : MonoBehaviour
             {
                 turnManager.turnList.Remove(target.gameObject);
             }
+            // ターン順リストからも削除
+            turnManager.RemoveCharacterFromTurnList(target);
+            
             // GameObject を削除
             if (target.CharacterObj != null)
             {
@@ -738,6 +749,7 @@ public class EnemyManager : MonoBehaviour
             {
                 // プレイヤーが撃破された（HPが0に）
                 chara.hp = 0;
+                Debug.Log($"[EnemyManager] {chara.charactername} が撃破されました");
                 // リストから削除
                 if (turnManager.players.Contains(chara.gameObject))
                 {
@@ -747,6 +759,9 @@ public class EnemyManager : MonoBehaviour
                 {
                     turnManager.turnList.Remove(chara.gameObject);
                 }
+                // ターン順リストからも削除
+                turnManager.RemoveCharacterFromTurnList(chara);
+                
                 // GameObject を削除
                 if (chara.CharacterObj != null)
                 {
