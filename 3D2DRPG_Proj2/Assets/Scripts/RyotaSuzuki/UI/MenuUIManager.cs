@@ -520,5 +520,15 @@ namespace RyotaSuzuki.UI
                 CloseMenu();
             }
         }
+
+        //ゲーム終了(ボタンイベントから呼び出す)
+        public void ExitGame()
+        {
+            Application.Quit();
+
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #endif
+        }
     }
 } 

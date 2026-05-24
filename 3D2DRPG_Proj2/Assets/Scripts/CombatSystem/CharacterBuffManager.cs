@@ -220,35 +220,23 @@ public class CharacterBuffManager : MonoBehaviour
                         {
                             turnManager.turnList.Remove(ownerCharacter.gameObject);
                         }
-                        // ターン順リストからも削除
                         turnManager.RemoveCharacterFromTurnList(ownerCharacter);
+
+                        if (ownerCharacter.CharacterObj != null)
+                        {
+                            Destroy(ownerCharacter.CharacterObj);
+                        }
+                        else
+                        {
+                            Destroy(ownerCharacter.gameObject);
+                        }
                     }
                     // 継続ダメージでプレイヤーが倒れた場合の処理
                     else
                     {
                         Debug.Log($"[CharacterBuffManager] {ownerCharacter.charactername} が{damageType}の継続ダメージで倒れました");
-                        
-                        if (turnManager.players.Contains(ownerCharacter.gameObject))
-                        {
-                            turnManager.players.Remove(ownerCharacter.gameObject);
-                        }
-                        if (turnManager.turnList.Contains(ownerCharacter.gameObject))
-                        {
-                            turnManager.turnList.Remove(ownerCharacter.gameObject);
-                        }
-                        // ターン順リストからも削除
-                        turnManager.RemoveCharacterFromTurnList(ownerCharacter);
+                        turnManager.NotifyPlayerDefeated(ownerCharacter);
                     }
-                }
-                
-                // GameObject削除（次のフレームで削除）
-                if (ownerCharacter.CharacterObj != null)
-                {
-                    Destroy(ownerCharacter.CharacterObj);
-                }
-                else
-                {
-                    Destroy(ownerCharacter.gameObject);
                 }
             }
 

@@ -472,31 +472,7 @@ public class EnemyManager : MonoBehaviour
                     //もしこの攻撃で死んだら
                     if (target.hp <= 0)
                     {
-                        // プレイヤーが撃破された（HPが0に）
-                        target.hp = 0;
-                        Debug.Log($"[EnemyManager] {target.charactername} が撃破されました");
-                        // リストから削除
-                        if (turnManager.players.Contains(target.gameObject))
-                        {
-                            turnManager.players.Remove(target.gameObject);
-                        }
-                        if (turnManager.turnList.Contains(target.gameObject))
-                        {
-                            turnManager.turnList.Remove(target.gameObject);
-                        }
-                        // ターン順リストからも削除
-                        turnManager.RemoveCharacterFromTurnList(target);
-                        
-                        // GameObject を削除
-                        if (target.CharacterObj != null)
-                        {
-                            Destroy(target.CharacterObj);
-                        }
-                        else
-                        {
-                            // fallback: Destroy target.gameObject
-                            Destroy(target.gameObject);
-                        }
+                        turnManager.NotifyPlayerDefeated(target);
                     }
 
                     //削ったら
@@ -621,31 +597,7 @@ public class EnemyManager : MonoBehaviour
 
         if (target.hp <= 0)
         {
-            // プレイヤーが撃破された（HPが0に）
-            target.hp = 0;
-            Debug.Log($"[EnemyManager] {target.charactername} が撃破されました");
-            // リストから削除
-            if (turnManager.players.Contains(target.gameObject))
-            {
-                turnManager.players.Remove(target.gameObject);
-            }
-            if (turnManager.turnList.Contains(target.gameObject))
-            {
-                turnManager.turnList.Remove(target.gameObject);
-            }
-            // ターン順リストからも削除
-            turnManager.RemoveCharacterFromTurnList(target);
-            
-            // GameObject を削除
-            if (target.CharacterObj != null)
-            {
-                Destroy(target.CharacterObj);
-            }
-            else
-            {
-                // fallback: Destroy target.gameObject
-                Destroy(target.gameObject);
-            }
+            turnManager.NotifyPlayerDefeated(target);
         }
     }
 
@@ -747,31 +699,7 @@ public class EnemyManager : MonoBehaviour
 
             if (chara.hp <= 0)
             {
-                // プレイヤーが撃破された（HPが0に）
-                chara.hp = 0;
-                Debug.Log($"[EnemyManager] {chara.charactername} が撃破されました");
-                // リストから削除
-                if (turnManager.players.Contains(chara.gameObject))
-                {
-                    turnManager.players.Remove(chara.gameObject);
-                }
-                if (turnManager.turnList.Contains(chara.gameObject))
-                {
-                    turnManager.turnList.Remove(chara.gameObject);
-                }
-                // ターン順リストからも削除
-                turnManager.RemoveCharacterFromTurnList(chara);
-                
-                // GameObject を削除
-                if (chara.CharacterObj != null)
-                {
-                    Destroy(chara.CharacterObj);
-                }
-                else
-                {
-                    // fallback: Destroy target.gameObject
-                    Destroy(chara.gameObject);
-                }
+                turnManager.NotifyPlayerDefeated(chara);
             }
         }
 

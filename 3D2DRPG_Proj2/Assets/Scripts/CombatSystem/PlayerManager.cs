@@ -25,6 +25,17 @@ public class CharacterBuff
 }
 
 /// <summary>
+/// 戦闘不能になった味方の退避データ
+/// </summary>
+[Serializable]
+public class DefeatedAllyInfo
+{
+    public CharacterData characterData;
+    public int panelIndex;
+    public Vector3 spawnPosition;
+}
+
+/// <summary>
 /// プレイヤーの戦闘行動を管理するクラス
 /// </summary>
 public class PlayerManager : MonoBehaviour
@@ -34,6 +45,8 @@ public class PlayerManager : MonoBehaviour
     private UITest uiTest;  // UIテスト用の参照
     [SerializeField, Header("ComboUI")]
     private ComboAttack comboUI;   // コンボ攻撃UIの参照
+    [SerializeField, Header("蘇生タイミングUI")]
+    private TimingUI reviveTimingUI;
     [SerializeField, Header("選択用UI")]
     private SkillSelectionUI skillSelectionUI; // スキル選択UIの参照
     [SerializeField, Header("ターン管理")]
@@ -78,6 +91,8 @@ public class PlayerManager : MonoBehaviour
 
     //Buffの管理用リスト
     public List<CharacterBuff>　characterBuffs = new List<CharacterBuff>();
+    // 戦闘不能になった味方
+    private readonly List<DefeatedAllyInfo> defeatedAllies = new List<DefeatedAllyInfo>();
 
     /// <summary>
     /// キャラクターデータ取得用
@@ -136,38 +151,107 @@ public class PlayerManager : MonoBehaviour
             
             // キャラクターの座標をセット
             playerCharacters[i].CharacterTransfrom = spawnPositions[i];
-            // キャラクターのGameObjectを作成
-            var obj = Instantiate(playerCharacters[i].CharacterObj, spawnPositions[i], Quaternion.identity);
-            obj.AddComponent<Character>().init(playerCharacters[i]);
-            obj.transform.parent = transform;
-            characterObjects.Add(obj);
-            
-            // キャラクターとパネルの紐付けを記録
-            characterToPanelIndex[obj] = i;
-            
-            // ステータスパネルの設定
-            if (i < playerStatusPanel.Count && playerStatusPanel[i] != null)
-            {
-                playerStatusPanel[i].gameObject.SetActive(true);
-                PlayerData playerData = new PlayerData(characterObjects[i].GetComponent<Character>());
-                playerStatusPanel[i].UpdatePlayerStatus(playerData);
-                
-                // CharacterBuffManagerとPlayerStatusPanelを接続
-                CharacterBuffManager buffManager = obj.GetComponent<CharacterBuffManager>();
-                if (buffManager != null)
-                {
-                    buffManager.OnBuffsChanged.AddListener(playerStatusPanel[i].UpdateBuffIcons);
-                    Debug.Log($"[PlayerManager] バフアイコン接続完了: {playerCharacters[i].charactername} → PlayerStatusPanel[{i}]");
-                }
-                else
-                {
-                    Debug.LogWarning($"[PlayerManager] バフアイコン接続失敗: buffManager={buffManager}");
-                }
-            }
+            SpawnPlayerCharacter(playerCharacters[i], i, spawnPositions[i]);
         }
         
         Debug.Log($"[PlayerManager] {playerCharacters.Count}人のキャラクターを戦闘に配置しました");
     }
+
+    /// <summary>
+    /// プレイヤーキャラクターを生成してUIを接続
+    /// </summary>
+    private GameObject SpawnPlayerCharacter(CharacterData data, int panelIndex, Vector3 position)
+    {
+        var obj = Instantiate(data.CharacterObj, position, Quaternion.identity);
+        obj.AddComponent<Character>().init(data);
+        obj.transform.parent = transform;
+        characterObjects.Add(obj);
+        characterToPanelIndex[obj] = panelIndex;
+        SetupPlayerStatusPanel(obj, panelIndex);
+        return obj;
+    }
+
+    private void SetupPlayerStatusPanel(GameObject obj, int panelIndex)
+    {
+        if (panelIndex < 0 || panelIndex >= playerStatusPanel.Count || playerStatusPanel[panelIndex] == null)
+        {
+            return;
+        }
+
+        playerStatusPanel[panelIndex].gameObject.SetActive(true);
+        PlayerData playerData = new PlayerData(obj.GetComponent<Character>());
+        playerStatusPanel[panelIndex].UpdatePlayerStatus(playerData);
+
+        CharacterBuffManager buffManager = obj.GetComponent<CharacterBuffManager>();
+        if (buffManager != null)
+        {
+            buffManager.OnBuffsChanged.AddListener(playerStatusPanel[panelIndex].UpdateBuffIcons);
+            Debug.Log($"[PlayerManager] バフアイコン接続完了: {obj.GetComponent<Character>().charactername} → PlayerStatusPanel[{panelIndex}]");
+        }
+    }
+
+    /// <summary>
+    /// プレイヤー撃破時の共通処理（CharacterData退避 → リスト削除 → Destroy）
+    /// </summary>
+    public void ProcessPlayerDefeat(Character target)
+    {
+        if (target == null || target.enemyCheckFlag) return;
+
+        target.hp = 0;
+
+        int panelIndex = -1;
+        if (target.CharacterObj != null && characterToPanelIndex.TryGetValue(target.CharacterObj, out int idx))
+        {
+            panelIndex = idx;
+        }
+
+        CharacterData data = target.GetCharacterData();
+        Vector3 spawnPosition = panelIndex >= 0 && panelIndex < spawnPositions.Count
+            ? spawnPositions[panelIndex]
+            : target.CharacterTransfrom;
+
+        if (data != null)
+        {
+            data.hp = 0;
+            defeatedAllies.Add(new DefeatedAllyInfo
+            {
+                characterData = data,
+                panelIndex = panelIndex,
+                spawnPosition = spawnPosition
+            });
+        }
+
+        if (target.CharacterObj != null)
+        {
+            characterToPanelIndex.Remove(target.CharacterObj);
+            characterObjects.Remove(target.CharacterObj);
+        }
+
+        if (panelIndex >= 0 && panelIndex < playerStatusPanel.Count && playerStatusPanel[panelIndex] != null)
+        {
+            playerStatusPanel[panelIndex].gameObject.SetActive(false);
+        }
+
+        if (turnManager != null)
+        {
+            if (turnManager.players.Contains(target.gameObject))
+            {
+                turnManager.players.Remove(target.gameObject);
+            }
+            if (turnManager.turnList.Contains(target.gameObject))
+            {
+                turnManager.turnList.Remove(target.gameObject);
+            }
+            turnManager.RemoveCharacterFromTurnList(target);
+        }
+
+        GameObject toDestroy = target.CharacterObj != null ? target.CharacterObj : target.gameObject;
+        Destroy(toDestroy);
+
+        Debug.Log($"[PlayerManager] {target.charactername} を戦闘不能として退避しました（蘇生可能: {defeatedAllies.Count}人）");
+    }
+
+    public int GetDefeatedAllyCount() => defeatedAllies.Count;
 
     
     /// <summary>
@@ -204,7 +288,8 @@ public class PlayerManager : MonoBehaviour
         if (selectedCharacter != null &&
             (selectedCharacter.StatusFlag == StatusFlag.Attack ||
              selectedCharacter.StatusFlag == StatusFlag.Heal ||
-             selectedCharacter.StatusFlag == StatusFlag.Buff))
+             selectedCharacter.StatusFlag == StatusFlag.Buff ||
+             selectedCharacter.StatusFlag == StatusFlag.Revive))
         {
             if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Backspace))
             {
@@ -318,6 +403,9 @@ public class PlayerManager : MonoBehaviour
             case StatusFlag.Buff:
                 PlayerBuff();
                 break;
+            case StatusFlag.Revive:
+                PlayerReviveSelect();
+                break;
             case StatusFlag.End:
                 PlayerEnd();
                 break;
@@ -381,6 +469,31 @@ public class PlayerManager : MonoBehaviour
         var healEvent = new UnityEvent<int>();
         healEvent.AddListener((index) => OnHealSelected(characters, index));
         uiTest.Inputs(healEvent, characters.Count - 1, characters);
+    }
+    /// <summary>
+    /// 蘇生対象（戦闘不能の味方）を選択するフェイズ
+    /// </summary>
+    private void PlayerReviveSelect()
+    {
+        if (defeatedAllies.Count == 0)
+        {
+            Debug.LogWarning("[PlayerManager] 蘇生対象の戦闘不能キャラがいません");
+            selectedCharacter.StatusFlag = StatusFlag.Select;
+            isActionPending = true;
+            return;
+        }
+
+        skillSelectionUI.ShowSkillWindow(false);
+
+        List<Vector3> positions = new List<Vector3>();
+        foreach (var ally in defeatedAllies)
+        {
+            positions.Add(ally.spawnPosition);
+        }
+
+        var reviveEvent = new UnityEvent<int>();
+        reviveEvent.AddListener(OnReviveSelected);
+        uiTest.InputsAtPositions(reviveEvent, positions);
     }
     /// <summary>
     /// バフの処理
@@ -492,6 +605,21 @@ public class PlayerManager : MonoBehaviour
                     isActionPending = true;
                 //    //仮バフ効果適用
                 OnBuffSelected(getPlayer(), 0, selectedSkill.buffEffect[0]);
+                break;
+            case SkillEffectType.Revive:
+                if (defeatedAllies.Count == 0)
+                {
+                    Debug.LogWarning("[PlayerManager] 蘇生対象がいないためスキルを使用できません");
+                    if (cancelSoundEffect != null && seSource != null)
+                    {
+                        seSource.PlayOneShot(cancelSoundEffect);
+                    }
+                    selectedCharacter.StatusFlag = StatusFlag.Select;
+                    isActionPending = true;
+                    return;
+                }
+                Debug.Log("StatusFlag.Reviveに移行");
+                selectedCharacter.StatusFlag = StatusFlag.Revive;
                 break;
         }
         if(selectedSkill.targetScope != TargetScope.All)
@@ -682,6 +810,107 @@ public class PlayerManager : MonoBehaviour
         //    isActionPending = true;
         //}
 
+    }
+
+    /// <summary>
+    /// 蘇生対象選択時のコールバック
+    /// </summary>
+    private void OnReviveSelected(int index)
+    {
+        if (index < 0 || index >= defeatedAllies.Count)
+        {
+            selectedCharacter.StatusFlag = StatusFlag.Revive;
+            isActionPending = true;
+            return;
+        }
+
+        if (selectedCharacter.mp < selectedSkill.mpCost)
+        {
+            selectedCharacter.StatusFlag = StatusFlag.Select;
+            isActionPending = true;
+            return;
+        }
+
+        selectedCharacter.mp -= selectedSkill.mpCost;
+        StartCoroutine(ReviveSequence(defeatedAllies[index]));
+    }
+
+    private IEnumerator ReviveSequence(DefeatedAllyInfo targetInfo)
+    {
+        bool perfectTiming = false;
+
+        if (reviveTimingUI != null)
+        {
+            reviveTimingUI.Show(selectedSkill.timingWindowStart, selectedSkill.timingWindowEnd);
+            float maxWait = selectedSkill.timingWindowStart + selectedSkill.timingWindowEnd + 2f;
+            float timer = 0f;
+            bool inputReceived = false;
+
+            while (!inputReceived && timer < maxWait)
+            {
+                if (reviveTimingUI.IsTimingSuccess())
+                {
+                    perfectTiming = reviveTimingUI.CheckTimingSuccess();
+                    inputReceived = true;
+                }
+                timer += Time.deltaTime;
+                yield return null;
+            }
+
+            reviveTimingUI.Hide();
+        }
+
+        ReviveAlly(targetInfo, perfectTiming);
+
+        if (selectedSkill != null && selectedSkill.soundEffect != null && seSource != null)
+        {
+            seSource.PlayOneShot(selectedSkill.soundEffect);
+        }
+
+        selectedCharacter.StatusFlag = StatusFlag.End;
+        isActionPending = true;
+    }
+
+    /// <summary>
+    /// 戦闘不能の味方を蘇生する
+    /// </summary>
+    private void ReviveAlly(DefeatedAllyInfo info, bool perfectTiming)
+    {
+        if (info == null || info.characterData == null)
+        {
+            Debug.LogWarning("[PlayerManager] 蘇生対象データが無効です");
+            return;
+        }
+
+        float hpRatio = perfectTiming ? 1f : (selectedSkill != null && selectedSkill.power > 0f ? selectedSkill.power : 0.5f);
+        int reviveHp = Mathf.Max(1, Mathf.RoundToInt(info.characterData.maxHp * hpRatio));
+        info.characterData.hp = reviveHp;
+
+        GameObject obj = SpawnPlayerCharacter(info.characterData, info.panelIndex, info.spawnPosition);
+        Character revivedCharacter = obj.GetComponent<Character>();
+        revivedCharacter.hp = reviveHp;
+
+        if (turnManager != null)
+        {
+            turnManager.RegisterRevivedPlayer(obj);
+        }
+
+        defeatedAllies.Remove(info);
+
+        if (VFXManager.Instance != null)
+        {
+            VFXManager.Instance.PlayHealEffect(obj);
+        }
+        if (DamageEffectUI.Instance != null)
+        {
+            DamageEffectUI.Instance.ShowHealEffectOnCharacter(obj, reviveHp);
+            if (selectedSkill != null)
+            {
+                DamageEffectUI.Instance.PlaySkillVFX(selectedSkill, obj);
+            }
+        }
+
+        Debug.Log($"[PlayerManager] {revivedCharacter.charactername} を蘇生しました HP={reviveHp}/{revivedCharacter.maxHp} (ベスト:{perfectTiming})");
     }
 
     /// <summary>

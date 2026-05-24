@@ -23,6 +23,9 @@ public class TurnManager : MonoBehaviour
     private List<GameObject> nextTurnList = new List<GameObject>();// 次のターン用リスト
     [SerializeField, Header("ResultWinキャンバス")]
     public GameObject ResultWinCanvas; // 勝利時キャンバス
+
+    [SerializeField, Header("ResultLoseキャンバス")]
+    public GameObject ResultLoseCanvas; // 敗北時キャンバス
     
     [SerializeField, Header("勝利演出")]
     public UnityEngine.UI.Image victoryCharacterImage; // Canvas/Panel/Image（立ち絵表示用）
@@ -321,6 +324,34 @@ public class TurnManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// プレイヤー撃破時の共通処理（PlayerManagerへ委譲）
+    /// </summary>
+    public void NotifyPlayerDefeated(Character target)
+    {
+        if (target == null || target.enemyCheckFlag || playerManager == null) return;
+        playerManager.ProcessPlayerDefeat(target);
+    }
+
+    /// <summary>
+    /// 蘇生したプレイヤーを次ラウンド用 turnList に登録
+    /// </summary>
+    public void RegisterRevivedPlayer(GameObject playerObj)
+    {
+        if (playerObj == null) return;
+
+        if (!players.Contains(playerObj))
+        {
+            players.Add(playerObj);
+        }
+        if (!turnList.Contains(playerObj))
+        {
+            turnList.Add(playerObj);
+        }
+
+        Debug.Log($"[TurnManager] {playerObj.name} を次ラウンド用 turnList に登録しました");
+    }
+
     //ターン開始してフラグ
     public void FlagChange()
     {
@@ -411,10 +442,14 @@ public class TurnManager : MonoBehaviour
     {
         //敗北処理
         if (players.Count == 0)
+        {
             DefeatProcess();
+        }
         //勝利処理
-        if (enemys.Count == 0)
+        else if (enemys.Count == 0)
+        {
             VictoryProcess();
+        }
 
         //コルーチンを停止
         StopAllCoroutines();
@@ -424,7 +459,19 @@ public class TurnManager : MonoBehaviour
     private void DefeatProcess()
     {
         Debug.Log("敗北処理");
-        GameManager.Instance.EndBattle();
+
+        if (ResultLoseCanvas != null)
+        {
+            ResultLoseCanvas.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("[TurnManager] ResultLoseCanvas が未設定です。タイトルへ遷移します。");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ReturnToTitle();
+            }
+        }
     }
 
     //勝利処理

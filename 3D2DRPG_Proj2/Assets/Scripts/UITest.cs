@@ -24,6 +24,56 @@ public class UITest : MonoBehaviour
         StartCoroutine(EventCoroutines(unityEvent, i));
     }
 
+    /// <summary>
+    /// 座標リストから対象選択（蘇生対象など Character が存在しない場合）
+    /// </summary>
+    public void InputsAtPositions(UnityEvent<int> unityEvent, List<Vector3> positions)
+    {
+        if (positions == null || positions.Count == 0) return;
+
+        index = 0;
+        maxIndex = positions.Count - 1;
+        character.Clear();
+        EnemyAttakPointUI.SetActive(true);
+        EnemyAttakPointUI.transform.position = positions[index] + new Vector3(0, 2, 0);
+        inputFlag = true;
+        StartCoroutine(EventCoroutinesAtPositions(unityEvent, positions));
+    }
+
+    private IEnumerator EventCoroutinesAtPositions(UnityEvent<int> unityEvent, List<Vector3> positions)
+    {
+        while (true)
+        {
+            yield return null;
+
+            if (Input.GetKeyDown(KeyCode.W) && inputFlag || Input.GetKeyDown(KeyCode.UpArrow) && inputFlag)
+            {
+                inputFlag = false;
+                index += 1;
+                if (index > maxIndex) index = 0;
+                if (index < 0) index = maxIndex;
+                EnemyAttakPointUI.transform.position = positions[index] + new Vector3(0, 2, 0);
+                inputFlag = true;
+            }
+            if (Input.GetKeyDown(KeyCode.S) && inputFlag || Input.GetKeyDown(KeyCode.DownArrow) && inputFlag)
+            {
+                inputFlag = false;
+                index -= 1;
+                if (index < 0) index = maxIndex;
+                if (index > maxIndex) index = 0;
+                EnemyAttakPointUI.transform.position = positions[index] + new Vector3(0, 2, 0);
+                inputFlag = true;
+            }
+            if (Input.GetKeyDown(KeyCode.Space) && inputFlag || Input.GetKeyDown(KeyCode.Return) && inputFlag)
+            {
+                inputFlag = false;
+                unityEvent.Invoke(index);
+                EnemyAttakPointUI.SetActive(false);
+                break;
+            }
+        }
+    }
+
     private IEnumerator EventCoroutines(UnityEvent<int> unityEvent, int i)
     {
         while (true)

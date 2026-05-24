@@ -14,7 +14,7 @@ public enum ZokuseiType
     Buturi,
     Mahou
 }
-public enum SkillEffectType { Attack, Heal, Buff, ExtraAction }
+public enum SkillEffectType { Attack, Heal, Buff, ExtraAction, Revive }
 [CreateAssetMenu(menuName = "SkillData")]
 public class SkillData : ScriptableObject
 {

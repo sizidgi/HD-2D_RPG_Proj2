@@ -462,6 +462,68 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 敗北時：タイトル画面へ戻る（フィールド復帰・勝利イベントは発生しない）
+    /// </summary>
+    public void ReturnToTitle()
+    {
+        if (isTransitioning)
+        {
+            if (showDebugLog)
+            {
+                Debug.Log("[GameManager] シーン遷移中のため、タイトル復帰をスキップします");
+            }
+            return;
+        }
+
+        if (showDebugLog)
+        {
+            Debug.Log("[GameManager] 敗北：タイトル画面へ戻ります");
+        }
+
+        BattleWin = false;
+        ClearBossBattleData();
+        hasPostBattleDialogue = false;
+        postBattleDialogueCSV = "";
+
+        OnBattleEnd?.Invoke();
+
+        StartCoroutine(TransitionToTitle());
+    }
+
+    /// <summary>
+    /// タイトルシーンへの遷移
+    /// </summary>
+    private IEnumerator TransitionToTitle()
+    {
+        isTransitioning = true;
+
+        if (SceneTransitionManager.Instance != null)
+        {
+            if (showDebugLog)
+            {
+                Debug.Log($"[GameManager] SceneTransitionManagerでタイトルへ遷移: {titleSceneName}");
+            }
+
+            currentGameState = GameState.Title;
+            SceneTransitionManager.Instance.LoadSceneWithFade(titleSceneName);
+            yield return new WaitForSeconds(1.5f);
+        }
+        else
+        {
+            if (showDebugLog)
+            {
+                Debug.LogWarning("[GameManager] SceneTransitionManagerが見つかりません。直接タイトルへ遷移します。");
+            }
+
+            currentGameState = GameState.Title;
+            SceneManager.LoadScene(titleSceneName);
+            yield return null;
+        }
+
+        isTransitioning = false;
+    }
+
+    /// <summary>
     /// バトルシーンへの遷移
     /// </summary>
     private IEnumerator TransitionToBattle()

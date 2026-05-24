@@ -18,7 +18,7 @@ MonoBehaviour:
   soundEffect: {fileID: 0}
   vfxPrefab: {fileID: 0}
   animationName: 
-  effectType: 1
+  effectType: 4
   power: 10
   mpCost: 30
   cooldown: 0
@@ -33,7 +33,7 @@ MonoBehaviour:
   ComboDamage: 0
   comboNextSkill: {fileID: 0}
   timingWindowStart: 0.3
-  timingWindowEnd: 0.6
+  timingWindowEnd: 10
   comboDamageMultiplier: 1.2
   maxcombo: 3
   missCancel: 1

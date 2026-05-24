@@ -14,6 +14,7 @@ public enum StatusFlag
     Attack,
     Heal,
     Buff,
+    Revive,
     End
 }
 
