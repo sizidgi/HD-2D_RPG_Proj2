@@ -21,14 +21,14 @@ MonoBehaviour:
   animationName: 
   effectType: 0
   power: 333
-  mpCost: 20
+  mpCost: 18
   cooldown: 0
   hitCount: 1
   criticalRate: 0.1
   accuracy: 1
   isIntSansyou: 0
   targetScope: 1
-  statusEffect: 0
+  statusEffect: 2
   canCombo: 0
   DamageUp: 0
   ComboDamage: 0
@@ -45,9 +45,9 @@ MonoBehaviour:
   wariai: 0
   statusChance: 100
   buffEffect:
-  - {fileID: 11400000, guid: 3dfe4bda787082842bc1a17b66b5d279, type: 2}
+  - {fileID: 11400000, guid: 95cca435290ff134fb6d76bf3eadfcb7, type: 2}
   buffValue: 0
-  buffDuration: 0
+  buffDuration: 5
   DamageBonusFlg: 0
   ZokuseiType: 0
   isRandomEffect: 0

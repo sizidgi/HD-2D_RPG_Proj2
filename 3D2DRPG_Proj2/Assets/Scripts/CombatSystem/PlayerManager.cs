@@ -739,13 +739,13 @@ public class PlayerManager : MonoBehaviour
     public bool OnComboApplyAttack()
     {
         comboCount++;
-        int attackdamege = 0;
-        if (comboCount != 0)
-            attackdamege += comboCount*selectedSkill.ComboDamage;
+        int attackBonus = 0;
+        if (!IsComboBurstSkill(selectedSkill))
+        {
+            attackBonus = comboCount * selectedSkill.ComboDamage;
+        }
         var enemy = selectedEnemy;
-        var enemysurvival = ApplyAttack(enemy, selectedSkill, attackdamege);
-        return enemysurvival;
-        //selectedCharacter.mp -= selectedSkill.mpCost;
+        return ApplyAttack(enemy, selectedSkill, attackBonus);
     }
 
     /// <summary>
@@ -1053,6 +1053,37 @@ public class PlayerManager : MonoBehaviour
 
     #endregion
 
+    #region コンボバーストスキル（グレネードガン・ビッグバン）
+
+    private const string GrenadeGunSkillName = "グレネードガン";
+    private const string BigBangSkillName = "ビッグバン";
+
+    private bool IsComboBurstSkill(SkillData skill)
+    {
+        if (skill == null) return false;
+        return skill.skillName == GrenadeGunSkillName || skill.skillName == BigBangSkillName;
+    }
+
+    /// <summary>
+    /// (基礎値 + DB) × 1.0～2.0 × コンボ補正(1ヒット目100%、以降+10%) − 防御
+    /// </summary>
+    private int CalculateComboBurstDamage(SkillData skill, Character enemy, int comboHitCount)
+    {
+        if (selectedCharacter == null || enemy == null || skill == null) return 0;
+
+        int basePower = (int)skill.power;
+        int intStat = Mathf.Max(1, selectedCharacter.Int);
+        int db = UnityEngine.Random.Range(1, intStat + 1);
+        float rate = UnityEngine.Random.Range(1.0f, 2.0f);
+        float comboMultiplier = 1f + 0.1f * (Mathf.Max(1, comboHitCount) - 1);
+
+        int effectiveDef = enemy.GetEffectiveDefense();
+        float raw = (basePower + db) * rate * comboMultiplier;
+        return Mathf.Max(0, Mathf.RoundToInt(raw - effectiveDef));
+    }
+
+    #endregion
+
     #region 行動処理の実装
     
     /// <summary>
@@ -1132,30 +1163,42 @@ public class PlayerManager : MonoBehaviour
         //アニメーションが流れるのを待つ
         new WaitForSeconds(2.5f);
 
-        // バフ適用後の攻撃力と防御力を取得
-        int effectiveAtk = selectedCharacter.GetEffectiveAttack(skill.isIntSansyou);
         int effectiveDef = enemy.GetEffectiveDefense();
-
-        float random = 0;
         var finalDamage = 0;
+
+        if (IsComboBurstSkill(skill))
+        {
+            finalDamage = CalculateComboBurstDamage(skill, enemy, comboCount);
+            Debug.Log($"{skill.skillName} コンボ{comboCount}発目: バーストダメージ={finalDamage}");
+        }
+        else
+        {
+            // バフ適用後の攻撃力と防御力を取得
+            int effectiveAtk = selectedCharacter.GetEffectiveAttack(skill.isIntSansyou);
 
             finalDamage = (int)(effectiveAtk - effectiveDef);
 
-        Debug.Log(skill.skillName + "のatk - def計算ダメージ★" + finalDamage);
+            Debug.Log(skill.skillName + "のatk - def計算ダメージ★" + finalDamage);
 
-        //スキルがダメージボーナスを持つ場合
-        if (skill.DamageBonusFlg == true)
-        {
-            //ダメージ乱数
-            random = UnityEngine.Random.Range(1, effectiveAtk + 1);
-            random = random / 10;
-            Debug.Log("乱数:" + random);
-            //基本ダメージ計算（バフ適用後の攻撃力を使用）
-            var damage = effectiveAtk * random;
-            //最終計算（バフ適用後の防御力を使用）
-           finalDamage = (int)(damage - effectiveDef);
+            //スキルがダメージボーナスを持つ場合
+            if (skill.DamageBonusFlg == true)
+            {
+                //ダメージ乱数
+                float random = UnityEngine.Random.Range(1, effectiveAtk + 1);
+                random = random / 10;
+                Debug.Log("乱数:" + random);
+                //基本ダメージ計算（バフ適用後の攻撃力を使用）
+                var damage = effectiveAtk * random;
+                //最終計算（バフ適用後の防御力を使用）
+                finalDamage = (int)(damage - effectiveDef);
 
-            Debug.Log(skill.skillName + "のDB後最終ダメージ★" + finalDamage);
+                Debug.Log(skill.skillName + "のDB後最終ダメージ★" + finalDamage);
+            }
+
+            if (Attackbuff > 0)
+            {
+                finalDamage += Attackbuff;
+            }
         }
 
         if (IsReloadEnhancedNormalAttack(skill))
@@ -1262,6 +1305,17 @@ public class PlayerManager : MonoBehaviour
     }
 
     /// <summary>
+    /// プレイヤー側ヒールの回復量を算出（蘇生は対象外）
+    /// 基本値 × 使用者のLv
+    /// </summary>
+    private int CalculatePlayerHealAmount(Character target, SkillData skill)
+    {
+        int baseHeal = skill.isIntSansyou ? target.Int : (int)skill.power;
+        int casterLevel = selectedCharacter != null ? Mathf.Max(1, selectedCharacter.level) : 1;
+        return baseHeal * casterLevel;
+    }
+
+    /// <summary>
     /// 回復処理
     /// </summary>
     private void ApplyHeal(Character character, SkillData skill)
@@ -1269,17 +1323,8 @@ public class PlayerManager : MonoBehaviour
         if (character == null || skill == null) return; // nullチェック追加
         
         int beforeHp = character.hp;
-        var hp = 0;
-        
-        //スキルがInt値を参照するならば
-        if (skill.isIntSansyou)
-        {
-            hp = (int)(character.hp + character.Int);
-        }
-        else
-        {
-            hp = (int)(character.hp + skill.power);
-        }
+        int healAmount = CalculatePlayerHealAmount(character, skill);
+        int hp = character.hp + healAmount;
         
         character.hp = (int)math.floor(hp);
         if (character.hp > character.maxHp)

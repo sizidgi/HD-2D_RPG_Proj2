@@ -22,7 +22,7 @@ MonoBehaviour:
   animationName: 
   effectType: 0
   power: 1
-  mpCost: 30
+  mpCost: 20
   cooldown: 0
   hitCount: 1
   criticalRate: 0.1

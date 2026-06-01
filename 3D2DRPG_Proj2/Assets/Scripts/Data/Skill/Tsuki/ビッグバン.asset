@@ -35,7 +35,7 @@ MonoBehaviour:
   timingWindowStart: 0.3
   timingWindowEnd: 10
   comboDamageMultiplier: 1.5
-  maxcombo: 20
+  maxcombo: 10
   missCancel: 1
   rengeki: 0
   rengekiCount: 0

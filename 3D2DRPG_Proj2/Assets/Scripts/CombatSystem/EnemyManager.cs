@@ -247,6 +247,18 @@ public class EnemyManager : MonoBehaviour
             ? chosenSkill.attackCount
             : 1;
 
+        if (chosenSkill != null && chosenSkill.mpCost > 0)
+        {
+            if (actingEnemy.mp < chosenSkill.mpCost)
+            {
+                chosenSkill = null;
+            }
+            else
+            {
+                actingEnemy.mp -= chosenSkill.mpCost;
+            }
+        }
+
         // 攻撃回数分ループ
         for (int i = 0; i < attackCount; i++)
         {
@@ -388,7 +400,6 @@ public class EnemyManager : MonoBehaviour
         if (target == null) return;
 
         float power = 0;
-        bool isHeal = false; // 回復フラグ
         float AddDamageBonusPower = 0f;
 
         // クリティカル判定（ロックオン時は+30%）
@@ -426,58 +437,8 @@ public class EnemyManager : MonoBehaviour
             // ランダム効果スキルかチェック
             if (skill.isRandomEffect)
             {
-                // 50%でダメージか回復か決定
-                isHeal = UnityEngine.Random.value < 0.5f;
-
-                // 最大HPの割合 skill.powerはスキル側に0.2などの割合ダメを設定しておき、MAXHPと計算させる。
-                power = attacker.maxHp * skill.power;
-
-                if (isHeal)
-                {
-                    // 回復処理（使用者自身を回復）
-                    int beforeHp = attacker.hp;
-                    attacker.hp += (int)power;
-                    target.hp += (int)power;
-                    if (attacker.hp > attacker.maxHp) attacker.hp = attacker.maxHp;
-                    
-                    // 実際の回復量
-                    int actualHealAmount = attacker.hp - beforeHp;
-                    
-                    Debug.Log($"{attacker.charactername}は{actualHealAmount}回復した！");
-                    
-                    // 回復エフェクトを再生
-                    if (VFXManager.Instance != null && attacker.CharacterObj != null)
-                    {
-                        VFXManager.Instance.PlayHealEffect(attacker.CharacterObj);
-                    }
-                    
-                    // 回復テキストを表示
-                    if (DamageEffectUI.Instance != null && attacker.CharacterObj != null && actualHealAmount > 0)
-                    {
-                        DamageEffectUI.Instance.ShowHealEffectOnCharacter(attacker.CharacterObj, actualHealAmount);
-                    }
-                    
-                    return; // ここで処理終了
-                }
-                else
-                {
-                    // ダメージ処理（プレイヤーにダメージ）
-                    //この後のダメージ処理はtargetにダメージを与える処理しかないので、先にPlayerhpを削っておく。
-                    var Playerhp = target.hp - power;
-                    target.hp = (int)math.floor(Playerhp);
-
-                    // 被弾アニメーション再生
-                    playerDamageAnimation(target);
-
-                    //もしこの攻撃で死んだら
-                    if (target.hp <= 0)
-                    {
-                        turnManager.NotifyPlayerDefeated(target);
-                    }
-
-                    //削ったら
-                    target = attacker; // 自分自身をターゲットに
-                }
+                ApplyRandomEffect(target, skill, attacker);
+                return;
             }
             else
             {
@@ -1071,6 +1032,96 @@ public class EnemyManager : MonoBehaviour
                 // デフォルトはバフエフェクト
                 VFXManager.Instance.PlayBuffEffect(target.CharacterObj);
                 break;
+        }
+    }
+
+    /// <summary>
+    /// 善か悪かの創造など：双方に各自maxHP×power分のダメージ or 回復（50%抽選）
+    /// </summary>
+    private void ApplyRandomEffect(Character target, SkillData skill, Character attacker)
+    {
+        if (target == null || attacker == null || skill == null) return;
+
+        bool isHeal = UnityEngine.Random.value < 0.5f;
+        int attackerAmount = Mathf.Max(1, Mathf.RoundToInt(attacker.maxHp * skill.power));
+        int targetAmount = Mathf.Max(1, Mathf.RoundToInt(target.maxHp * skill.power));
+
+        if (isHeal)
+        {
+            ApplyRandomEffectHeal(attacker, attackerAmount);
+            ApplyRandomEffectHeal(target, targetAmount);
+            Debug.Log($"[RandomEffect] 回復: {attacker.charactername}+{attackerAmount}, {target.charactername}+{targetAmount}");
+        }
+        else
+        {
+            ApplyRandomEffectDamage(attacker, attackerAmount);
+            ApplyRandomEffectDamage(target, targetAmount, !target.enemyCheckFlag);
+
+            if (target.hp <= 0)
+            {
+                turnManager.NotifyPlayerDefeated(target);
+            }
+            if (attacker.hp <= 0)
+            {
+                ProcessEnemyDefeat(attacker);
+            }
+            Debug.Log($"[RandomEffect] ダメージ: {attacker.charactername}-{attackerAmount}, {target.charactername}-{targetAmount}");
+        }
+
+        if (DamageEffectUI.Instance != null && target.CharacterObj != null)
+        {
+            DamageEffectUI.Instance.PlaySkillVFX(skill, target.CharacterObj);
+        }
+    }
+
+    private void ApplyRandomEffectHeal(Character character, int amount)
+    {
+        int beforeHp = character.hp;
+        character.hp = Mathf.Min(character.maxHp, character.hp + amount);
+        int actualHeal = character.hp - beforeHp;
+        if (actualHeal <= 0 || character.CharacterObj == null) return;
+
+        if (VFXManager.Instance != null)
+        {
+            VFXManager.Instance.PlayHealEffect(character.CharacterObj);
+        }
+        if (DamageEffectUI.Instance != null)
+        {
+            DamageEffectUI.Instance.ShowHealEffectOnCharacter(character.CharacterObj, actualHeal);
+        }
+    }
+
+    private void ApplyRandomEffectDamage(Character character, int amount, bool isPlayerTarget = false)
+    {
+        if (character == null) return;
+
+        character.hp = Mathf.Max(0, character.hp - amount);
+
+        if (isPlayerTarget)
+        {
+            playerDamageAnimation(character);
+        }
+
+        if (character.CharacterObj != null && DamageEffectUI.Instance != null)
+        {
+            DamageEffectUI.Instance.ShowDamageEffectOnEnemy(character.CharacterObj, amount);
+        }
+    }
+
+    private void ProcessEnemyDefeat(Character enemy)
+    {
+        if (enemy == null || enemy.hp > 0) return;
+        if (turnManager == null || !turnManager.enemys.Contains(enemy.gameObject)) return;
+
+        enemy.hp = 0;
+        Debug.Log($"[EnemyManager] {enemy.charactername} を撃破しました");
+        turnManager.enemys.Remove(enemy.gameObject);
+        turnManager.turnList.Remove(enemy.gameObject);
+        turnManager.RemoveCharacterFromTurnList(enemy);
+
+        if (enemy.CharacterObj != null)
+        {
+            Destroy(enemy.CharacterObj);
         }
     }
 

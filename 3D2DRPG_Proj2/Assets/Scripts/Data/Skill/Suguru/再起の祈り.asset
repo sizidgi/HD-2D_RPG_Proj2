@@ -19,7 +19,7 @@ MonoBehaviour:
   vfxPrefab: {fileID: 0}
   animationName: 
   effectType: 4
-  power: 10
+  power: 0.1
   mpCost: 30
   cooldown: 0
   hitCount: 1
