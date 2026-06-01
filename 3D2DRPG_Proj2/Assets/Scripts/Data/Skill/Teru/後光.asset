@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: "\u5F8C\u5149"
   m_EditorClassIdentifier: 
   skillName: "\u5F8C\u5149"
-  description: "\u30FB\u6575\u5168\u4F53\u653B\u6483 \r\n\u30FB\u57FA\u790E\u5024(INT\u53C2\u7167)\r\n\u30FBMP
-    10\u6D88\u8CBB\r\n"
+  description: "\u30FB\u6575\u5168\u4F53\u653B\u6483 \r"
   icon: {fileID: 0}
   soundEffect: {fileID: 8300000, guid: 2a7932a2a299b34418a6ef545ba43ce0, type: 3}
   vfxPrefab: {fileID: 0}

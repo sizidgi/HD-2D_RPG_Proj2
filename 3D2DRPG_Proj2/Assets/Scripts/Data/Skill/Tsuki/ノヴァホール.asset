@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "\u30CE\u30F4\u30A1\u30DB\u30FC\u30EB"
   m_EditorClassIdentifier: 
   skillName: "\u30CE\u30F4\u30A1\u30DB\u30FC\u30EB"
-  description: 
+  description: "\u30FB\u76F8\u624B1\u4F53\u653B\u6483 \n\u30FB\u78BA\u7387\u3067\u3084\u3051\u3069\u4ED8\u4E0E"
   icon: {fileID: 0}
   soundEffect: {fileID: 0}
   vfxPrefab: {fileID: 0}
@@ -44,7 +44,7 @@ MonoBehaviour:
   wariai: 0
   statusChance: 0
   buffEffect:
-  - {fileID: 11400000, guid: 95cca435290ff134fb6d76bf3eadfcb7, type: 2}
+  - {fileID: 11400000, guid: 8a0d684aa3c4c5e42b43480132bb9b1c, type: 2}
   buffValue: 0
   buffDuration: 5
   DamageBonusFlg: 0

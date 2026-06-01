@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "\u30D2\u30FC\u30EB\u30EC\u30A4\u30F3"
   m_EditorClassIdentifier: 
   skillName: "\u30D2\u30FC\u30EB\u30EC\u30A4\u30F3"
-  description: 
+  description: "\u5473\u65B9\u5168\u4F53\u306BHP\u56DE\u5FA9"
   icon: {fileID: 0}
   soundEffect: {fileID: 0}
   vfxPrefab: {fileID: 0}
@@ -37,6 +37,11 @@ MonoBehaviour:
   comboDamageMultiplier: 1.2
   maxcombo: 3
   missCancel: 1
+  rengeki: 0
+  rengekiCount: 0
+  atkAftHeal: 0
+  wariaiHeal: 0
+  wariai: 0
   statusChance: 0
   buffEffect: []
   buffValue: 0

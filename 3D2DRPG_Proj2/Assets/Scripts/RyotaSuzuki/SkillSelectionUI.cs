@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
+using DG.Tweening;
 
 /// <summary>
 /// コンソールゲーム風の技選択UI
@@ -19,6 +20,12 @@ public class SkillSelectionUI : MonoBehaviour
 
     [SerializeField] private GameObject skillWindowPanel;
     [SerializeField] private TextMeshProUGUI skillWindowText;
+
+    [Header("スキル説明パネル")]
+    [Tooltip("Pivot を中央 (0.5, 0.5) にすると中央から左右に開閉します")]
+    [SerializeField] private RectTransform descriptionPanel;
+    [SerializeField] private TextMeshProUGUI descriptionText;
+    [SerializeField] private float descriptionAnimDuration = 0.3f;
 
     [Header("表示設定")]
     [SerializeField] private Color normalColor = Color.white;
@@ -36,6 +43,7 @@ public class SkillSelectionUI : MonoBehaviour
     private int currentSelection = 0;
     private bool isActive = false;
     private PlayerData currentCharacterData;
+    private Tween descriptionPanelTween;
 
     void Start()
     {
@@ -43,9 +51,25 @@ public class SkillSelectionUI : MonoBehaviour
         if (skillPanel != null)
             skillPanel.SetActive(false);
 
+        InitializeDescriptionPanelHidden();
+
         // 操作説明を設定
         if (instructionText != null)
             instructionText.text = "↑↓: 選択  Space: 決定  ESC: キャンセル";
+    }
+
+    private void OnDestroy()
+    {
+        descriptionPanelTween?.Kill();
+    }
+
+    private void InitializeDescriptionPanelHidden()
+    {
+        if (descriptionPanel == null) return;
+
+        descriptionPanelTween?.Kill();
+        descriptionPanel.localScale = new Vector3(0f, descriptionPanel.localScale.y, descriptionPanel.localScale.z);
+        descriptionPanel.gameObject.SetActive(false);
     }
 
     /// <summary>
@@ -81,6 +105,8 @@ public class SkillSelectionUI : MonoBehaviour
 
         // スキルリストを更新
         UpdateSkillDisplay();
+
+        OpenDescriptionPanel();
 
         // 入力処理を開始
         StartCoroutine(HandleInput());
@@ -135,8 +161,61 @@ public class SkillSelectionUI : MonoBehaviour
     public void HideSkillSelection()
     {
         isActive = false;
-        if (skillPanel != null)
-            skillPanel.SetActive(false);
+        CloseDescriptionPanel(() =>
+        {
+            if (skillPanel != null)
+                skillPanel.SetActive(false);
+        });
+    }
+
+    private void OpenDescriptionPanel()
+    {
+        if (descriptionPanel == null) return;
+
+        UpdateDescriptionText();
+
+        descriptionPanelTween?.Kill();
+        descriptionPanel.gameObject.SetActive(true);
+        descriptionPanel.localScale = new Vector3(0f, descriptionPanel.localScale.y, descriptionPanel.localScale.z);
+        descriptionPanelTween = descriptionPanel
+            .DOScaleX(1f, descriptionAnimDuration)
+            .SetEase(Ease.OutQuad);
+    }
+
+    private void CloseDescriptionPanel(TweenCallback onComplete = null)
+    {
+        if (descriptionPanel == null || !descriptionPanel.gameObject.activeInHierarchy)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        descriptionPanelTween?.Kill();
+        descriptionPanelTween = descriptionPanel
+            .DOScaleX(0f, descriptionAnimDuration)
+            .SetEase(Ease.InQuad)
+            .OnComplete(() =>
+            {
+                descriptionPanel.gameObject.SetActive(false);
+                onComplete?.Invoke();
+            });
+    }
+
+    private void UpdateDescriptionText()
+    {
+        if (descriptionText == null || currentSkills == null || currentSkills.Count == 0)
+            return;
+
+        SkillData skill = currentSkills[currentSelection];
+        if (skill == null)
+        {
+            descriptionText.text = string.Empty;
+            return;
+        }
+
+        descriptionText.text = string.IsNullOrWhiteSpace(skill.description)
+            ? skill.skillName
+            : skill.description;
     }
 
     /// <summary>
@@ -165,6 +244,8 @@ public class SkillSelectionUI : MonoBehaviour
                 skillTexts[i].gameObject.SetActive(false);
             }
         }
+
+        UpdateDescriptionText();
     }
 
     /// <summary>

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "\u901A\u5E38\u653B\u6483"
   m_EditorClassIdentifier: 
   skillName: "\u901A\u5E38\u653B\u6483"
-  description: 
+  description: "3\u9023\u6483\u30013\u30B3\u30F3\u30DC\n\u7121\u96E3\u306B\u5F37\u3044"
   icon: {fileID: 0}
   soundEffect: {fileID: 8300000, guid: b424fb4684e93884792e5f499db5a560, type: 3}
   vfxPrefab: {fileID: 5024009746357069194, guid: ec3f674830402cc45bce805cf6493db7,

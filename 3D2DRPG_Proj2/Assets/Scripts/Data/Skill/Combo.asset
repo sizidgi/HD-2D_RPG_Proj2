@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: "\u30B0\u30EC\u30CD\u30FC\u30C9\u30AC\u30F3"
   description: "\u30FB\u76F8\u624B1\u4F53\u306B\u9023\u7D9A\u653B\u6483 \n\u30FB\u30D9\u30B9\u30C8\u30BF\u30A4\u30DF\u30F3\u30B0\u304C\u7D9A\u3051\u3070\u6700\u592720\u56DE\u307E\u3067
-    \u30D9\u30B9\u30C8\u30BF\u30A4\u30DF\u30F3\u30B0\u3059\u308C\u3070\u3059\u308B\u307B\u306910\uFF05\u30C0\u30E1\u30FC\u30B8\u3042\u304C\u308B\n\u30FB\u57FA\u790E\u5024+DB
-    \xD71.0\uFF5E2.0 \n\u30FBMP 30\u6D88\u8CBB"
+    \u30D9\u30B9\u30C8\u30BF\u30A4\u30DF\u30F3\u30B0\u3059\u308C\u3070\u3059\u308B\u307B\u306910\uFF05\u30C0\u30E1\u30FC\u30B8\u3042\u304C\u308B"
   icon: {fileID: 0}
   soundEffect: {fileID: 0}
   vfxPrefab: {fileID: 0}
@@ -27,6 +26,7 @@ MonoBehaviour:
   hitCount: 1
   criticalRate: 0.1
   accuracy: 1
+  isIntSansyou: 0
   targetScope: 0
   statusEffect: 0
   canCombo: 1
@@ -38,6 +38,11 @@ MonoBehaviour:
   comboDamageMultiplier: 1
   maxcombo: 10
   missCancel: 1
+  rengeki: 0
+  rengekiCount: 0
+  atkAftHeal: 0
+  wariaiHeal: 0
+  wariai: 0
   statusChance: 0
   buffEffect: []
   buffValue: 0
