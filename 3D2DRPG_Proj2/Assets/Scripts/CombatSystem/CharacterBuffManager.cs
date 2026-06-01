@@ -25,6 +25,9 @@ public class CharacterBuffManager : MonoBehaviour
     
     // バフ効果の合計値（計算用）
     private Dictionary<StatType, float> statModifiers = new Dictionary<StatType, float>();
+
+    // リロードバフ付与ターンのターン終了時は失効させない
+    private bool reloadSkipExpireThisTurn = false;
     
     /// <summary>
     /// 初期化
@@ -240,6 +243,12 @@ public class CharacterBuffManager : MonoBehaviour
                 }
             }
 
+            // リロードは攻撃消費 or ターン終了失効で管理するためTickTurn対象外
+            if (buff.baseData is ReloadBuff)
+            {
+                continue;
+            }
+
             //ターンを減らす
             buff.TickTurn();
             // Note: buff.Apply()は最初の適用時のみ呼ばれるべき。毎ターン再適用すると効果が重複する
@@ -428,6 +437,49 @@ public class CharacterBuffManager : MonoBehaviour
     public bool HasBuff(System.Type buffType)
     {
         return activeBuffs.Any(b => b.baseData != null && b.baseData.GetType() == buffType);
+    }
+
+    public bool HasReloadBuff()
+    {
+        return HasBuff(typeof(ReloadBuff));
+    }
+
+    public BuffInstance GetReloadBuffInstance()
+    {
+        return activeBuffs.FirstOrDefault(b => b.baseData is ReloadBuff);
+    }
+
+    public void OnReloadBuffApplied()
+    {
+        reloadSkipExpireThisTurn = true;
+    }
+
+    public void ConsumeReloadBuff()
+    {
+        var instance = GetReloadBuffInstance();
+        if (instance != null)
+        {
+            RemoveBuff(instance);
+        }
+    }
+
+    /// <summary>
+    /// ターン終了時: 未使用のリロードバフを失効させる（付与ターンはスキップ）
+    /// </summary>
+    public void TryExpireReloadBuffAtTurnEnd()
+    {
+        if (!HasReloadBuff())
+        {
+            return;
+        }
+
+        if (reloadSkipExpireThisTurn)
+        {
+            reloadSkipExpireThisTurn = false;
+            return;
+        }
+
+        ConsumeReloadBuff();
     }
     
     /// <summary>

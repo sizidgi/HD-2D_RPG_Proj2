@@ -883,6 +883,49 @@ public class EnemyManager : MonoBehaviour
 
                     }
                     break;
+
+                case StatusEffect.None:
+                    // statusEffect 未指定の汎用バフ（VFX なし・buffRange で付与）
+                    switch (buffBase.buffRange)
+                    {
+                        case BuffRange.Self:
+                            target.ApplyBuff(buff, target);
+                            break;
+                        case BuffRange.Ally:
+                            {
+                                var allies = GetAllies();
+                                if (allies.Count > 0)
+                                {
+                                    var ally = allies[UnityEngine.Random.Range(0, allies.Count)];
+                                    ally.ApplyBuff(buff, target);
+                                }
+                                break;
+                            }
+                        case BuffRange.Enemy:
+                            if (Player.Count > 0)
+                            {
+                                var selectedPlayer = Player[UnityEngine.Random.Range(0, Player.Count)];
+                                selectedPlayer.ApplyBuff(buff, target);
+                            }
+                            break;
+                        case BuffRange.AllAllies:
+                            foreach (var ally in GetAllies())
+                            {
+                                BuffInstance allyBuff = new BuffInstance(buffBase);
+                                allyBuff.remainingTurns = skill.buffDuration;
+                                ally.ApplyBuff(allyBuff, target);
+                            }
+                            break;
+                        case BuffRange.AllEnemies:
+                            foreach (var player in Player)
+                            {
+                                BuffInstance playerBuff = new BuffInstance(buffBase);
+                                playerBuff.remainingTurns = skill.buffDuration;
+                                player.ApplyBuff(playerBuff, target);
+                            }
+                            break;
+                    }
+                    break;
             }
         }
     }
@@ -1018,6 +1061,10 @@ public class EnemyManager : MonoBehaviour
                 
             case StatusEffect.LockIn:
                 VFXManager.Instance.PlayBuffEffect(target.CharacterObj);
+                break;
+
+            case StatusEffect.None:
+                // VFX なし（バフ効果のみ）
                 break;
                 
             default:

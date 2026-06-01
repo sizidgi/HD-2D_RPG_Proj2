@@ -31,7 +31,8 @@ public enum StatusEffect
     Makituki,
     Zouen,
     MPRecovery,
-    LockIn
+    LockIn,
+    None
 } //毒、スタン、やけど、凍結、眠り、魔封,ダメ増,ターンチェンジ,防御UP,スピードUP,スピードDN,マジックダメDN,反射,巻きつき,増援
 
 /// <summary>
@@ -95,7 +96,7 @@ public abstract class BuffBase : ScriptableObject
     /// <summary>
     /// 状態異常
     /// </summary>
-    public StatusEffect statusEffect; 
+    public StatusEffect statusEffect = StatusEffect.None;
 
     /// <summary>
     /// バフを解除する

@@ -45,7 +45,7 @@ MonoBehaviour:
   wariai: 0
   statusChance: 0
   buffEffect:
-  - {fileID: 11400000, guid: c574ed739704f3d4488076ad8e90e61a, type: 2}
+  - {fileID: 11400000, guid: e7d6c5b4a3928170f1e2d3c4b5a69781, type: 2}
   buffValue: 0
   buffDuration: 0
   DamageBonusFlg: 0

@@ -16,7 +16,8 @@ MonoBehaviour:
   description: 
   icon: {fileID: 0}
   soundEffect: {fileID: 0}
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 5087505237485310299, guid: afd9c2ff73643f94a9489ddf2a691013,
+    type: 3}
   animationName: 
   effectType: 2
   power: 10

@@ -25,8 +25,9 @@ MonoBehaviour:
   hitCount: 1
   criticalRate: 0
   accuracy: 1
+  isIntSansyou: 0
   targetScope: 1
-  statusEffect: 0
+  statusEffect: 17
   canCombo: 0
   DamageUp: 0
   ComboDamage: 0
@@ -36,6 +37,11 @@ MonoBehaviour:
   comboDamageMultiplier: 1.2
   maxcombo: 3
   missCancel: 1
+  rengeki: 0
+  rengekiCount: 0
+  atkAftHeal: 0
+  wariaiHeal: 0
+  wariai: 0
   statusChance: 0
   buffEffect:
   - {fileID: 11400000, guid: cf3130ba3d4226b44ac1cec374f5444b, type: 2}

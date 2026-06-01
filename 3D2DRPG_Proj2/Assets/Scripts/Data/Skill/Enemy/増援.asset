@@ -27,7 +27,7 @@ MonoBehaviour:
   accuracy: 1
   isIntSansyou: 0
   targetScope: 0
-  statusEffect: 0
+  statusEffect: 17
   canCombo: 0
   DamageUp: 0
   ComboDamage: 0

@@ -16,7 +16,8 @@ MonoBehaviour:
   description: 
   icon: {fileID: 0}
   soundEffect: {fileID: 0}
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 2819157520735297950, guid: a1b979dae55255b4d8112533c556b6e1,
+    type: 3}
   animationName: 
   effectType: 2
   power: 0
@@ -25,18 +26,27 @@ MonoBehaviour:
   hitCount: 1
   criticalRate: 0.1
   accuracy: 1
+  isIntSansyou: 0
   targetScope: 0
   statusEffect: 8
   canCombo: 0
+  DamageUp: 0
+  ComboDamage: 0
   comboNextSkill: {fileID: 0}
   timingWindowStart: 0.3
   timingWindowEnd: 0.6
   comboDamageMultiplier: 1.2
   maxcombo: 3
   missCancel: 1
+  rengeki: 0
+  rengekiCount: 0
+  atkAftHeal: 0
+  wariaiHeal: 0
+  wariai: 0
   statusChance: 0
   buffEffect:
   - {fileID: 11400000, guid: 6b36e9d7d80a5f544bd07d03e4837c45, type: 2}
+  buffValue: 0
   buffDuration: 0
   DamageBonusFlg: 0
   ZokuseiType: 0

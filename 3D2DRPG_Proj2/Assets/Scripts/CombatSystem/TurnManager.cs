@@ -322,6 +322,12 @@ public class TurnManager : MonoBehaviour
             nextTurnList.Remove(removeobj);
             Debug.Log($"[TurnManager] {character.charactername} をnextTurnListから削除");
         }
+
+        // 撃破・除外後にターン順UIを残り行動分で再描画
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateTurnUI(sortedTurnList, turnNumber);
+        }
     }
 
     /// <summary>
@@ -462,7 +468,15 @@ public class TurnManager : MonoBehaviour
 
         if (ResultLoseCanvas != null)
         {
-            ResultLoseCanvas.SetActive(true);
+            var resultLose = ResultLoseCanvas.GetComponent<ResultLose>();
+            if (resultLose != null)
+            {
+                resultLose.Show();
+            }
+            else
+            {
+                ResultLoseCanvas.SetActive(true);
+            }
         }
         else
         {

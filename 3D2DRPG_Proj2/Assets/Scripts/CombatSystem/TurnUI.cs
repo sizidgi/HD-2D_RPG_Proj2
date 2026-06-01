@@ -43,14 +43,14 @@ public class TurnUI : MonoBehaviour
             Destroy(ui);
         }
         activeTurnUIs.Clear();
-        // 新しいUI要素を作成
-        for (int i = 0; i < sortedTurnList.Count; i++)
+        // turnNumber 以降（これから行動するキャラ）のみ表示
+        for (int i = turnNumber; i < sortedTurnList.Count; i++)
         {
             if(sortedTurnList[i]== null)
                 continue;
             GameObject turnUI = Instantiate(turnUIPrefab, turnUIParent);
-            // ターンUIの位置を設定（横並び）
-            turnUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(i * 150, 0); // 150はアイコンの間隔
+            int displayIndex = i - turnNumber;
+            turnUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(displayIndex * 150, 0);
             // キャラクターの情報を取得してUIに反映
             Character character = sortedTurnList[i].GetComponent<Character>();
             if (character != null)

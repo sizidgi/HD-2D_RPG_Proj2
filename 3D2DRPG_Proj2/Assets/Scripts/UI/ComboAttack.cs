@@ -7,25 +7,33 @@ public class ComboAttack : MonoBehaviour
     //public Animator animator;
     [SerializeField,Header("ComboUI")]
     private TimingUI timingUI;
-    [SerializeField] private float timingTime = 0.4f; // ƒ^ƒCƒ~ƒ“ƒO·•ª
-    [SerializeField] private float timingWindowEnd = 0.6f;   // UŒ‚’†‚Ìƒ^ƒCƒ~ƒ“ƒOó•tI—¹
+    [SerializeField] private float timingTime = 0.4f; // ã‚¿ã‚¤ãƒŸãƒ³ã‚°å·®åˆ†
+    [SerializeField] private float timingWindowEnd = 0.6f;   // æ”»æ’ƒä¸­ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°å—ä»˜çµ‚äº†
 
     private UnityEvent<int> onComboEnd;
     private Func<int, bool> onComboAttack;
     private Character enemy;
     private int comboStep = 0;
-    private int maxComboStep = 3; // Å‘åƒRƒ“ƒ{”
+    private int maxComboStep = 3; // æœ€å¤§ã‚³ãƒ³ãƒœæ•°
     private bool canInput = false;
     private float timer = 0f;
+    private bool isComboActive = false;
 
     private void Update()
     {
-        // UŒ‚’†‚ÌŠÔŒo‰ß‚ğŠÇ—
+        // æ’ƒç ´æ¸ˆã¿ãƒ»Destroy æ¸ˆã¿ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãªã‚‰ã‚³ãƒ³ãƒœã‚’æ‰“ã¡åˆ‡ã‚‹
+        if (isComboActive && (enemy == null || enemy.hp <= 0))
+        {
+            EndCombo();
+            return;
+        }
+
+        // æ”»æ’ƒä¸­ã®æ™‚é–“çµŒéã‚’ç®¡ç†
         if (canInput)
         {
             var testing = timingUI.IsTimingSuccess();
             timingUI.SetMarker(timingUI.CheckTimingSuccess());
-            // UŒ‚“ü—Í
+            // æ”»æ’ƒå…¥åŠ›
             if (testing)
             {
                 TryAttack();
@@ -34,23 +42,23 @@ public class ComboAttack : MonoBehaviour
             //Debug.Log(timer);
             if (timer > timingWindowEnd+timingTime)
             {
-                EndCombo(); // ƒ^ƒCƒ~ƒ“ƒO‚ğ“¦‚µ‚½‚çI—¹
+                EndCombo(); // ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã‚’é€ƒã—ãŸã‚‰çµ‚äº†
             }
         }
     }
-    // UŒ‚“ü—Í‚ğ‚İ‚é
+    // æ”»æ’ƒå…¥åŠ›ã‚’è©¦ã¿ã‚‹
     private void TryAttack()
     {
         canInput = false;
         //if (!canInput && comboStep == 0)
         //{
-        //    // Å‰‚ÌUŒ‚
+        //    // æœ€åˆã®æ”»æ’ƒ
         //    StartAttack(1);
         //}  else 
         //if (canInput)
         //{
         Debug.Log("TryAttack");
-        // ƒ^ƒCƒ~ƒ“ƒO‚æ‚­ƒNƒŠƒbƒN‚µ‚½‚çŸ‚ÌUŒ‚‚Ö
+        // ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã‚ˆãã‚¯ãƒªãƒƒã‚¯ã—ãŸã‚‰æ¬¡ã®æ”»æ’ƒã¸
         if (timingUI.isActive)
         {
             Debug.Log(timingUI.isActive);
@@ -62,27 +70,26 @@ public class ComboAttack : MonoBehaviour
         }
         //}
     }
-    // ƒRƒ“ƒ{UŒ‚ŠJn
+    // ã‚³ãƒ³ãƒœæ”»æ’ƒé–‹å§‹
     private void StartAttack(int step)
     {
-        Debug.Log($"=== StartAttack() ŒÄ‚Î‚ê‚Ü‚µ‚½BStep: {step} ===");
+        Debug.Log($"=== StartAttack() å‘¼ã°ã‚Œã¾ã—ãŸã€‚Step: {step} ===");
         
         comboStep = step;
         //animator.SetTrigger($"Attack{step}");
         canInput = true;
         timer = 0f;
         
-        Debug.Log($"timingUI.Show() ‚ğŒÄ‚Ño‚µ‚Ü‚·BtimingTime: {timingTime}, timingWindowEnd: {timingWindowEnd}");
+        Debug.Log($"timingUI.Show() ã‚’å‘¼ã³å‡ºã—ã¾ã™ã€‚timingTime: {timingTime}, timingWindowEnd: {timingWindowEnd}");
         timingUI.Show(timingTime,timingWindowEnd);
     }
-
-    // Ÿ‚ÌUŒ‚‚Ö(ƒRƒ‹[ƒ`ƒ“‚È‚µ‚Ìê‡)
+    // æ¬¡ã®æ”»æ’ƒã¸
     private void NextAttack()
     {
         comboStep++;
         
         Debug.Log(comboStep);
-        if (comboStep >= maxComboStep) // 3’iƒRƒ“ƒ{ãŒÀ‚È‚Ç
+        if (comboStep >= maxComboStep) // 3æ®µã‚³ãƒ³ãƒœä¸Šé™ãªã©
         {
             EndCombo();
             return;
@@ -94,15 +101,11 @@ public class ComboAttack : MonoBehaviour
             EndCombo();
             return;
         }
-        //animator.SetTrigger($"Attack{comboStep}");
         timer = 0f;
         canInput = true;
     }
 
-    /// <summary>
-    /// UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‘Ò‹@—p‚ÌƒRƒ‹[ƒ`ƒ“
-    /// </summary>
-    [SerializeField, Header("UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‘Ò‹@ŠÔ")]
+    [SerializeField, Header("ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–“éš”")]
     private float attackAnimationDuration = 0.8f;
 
     private IEnumerator NextAttackCoroutine()
@@ -111,13 +114,10 @@ public class ComboAttack : MonoBehaviour
 
         Debug.Log($"[ComboAttack] NextAttack: comboStep={comboStep}, maxComboStep={maxComboStep}");
 
-        canInput = false; // UŒ‚’†‚Í“ü—Í‚ğ–³Œø‰»
+        canInput = false; // æ”»æ’ƒå…¥åŠ›ã‚’ç„¡åŠ¹åŒ–
 
-        // UŒ‚‚ğÀs
+        // æ”»æ’ƒé–‹å§‹
         bool EnemySurvival = onComboAttack.Invoke(0);
-
-        // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªI‚í‚é‚Ü‚Å‘Ò‹@
-        yield return new WaitForSeconds(attackAnimationDuration);
 
         if (!EnemySurvival)
         {
@@ -125,22 +125,50 @@ public class ComboAttack : MonoBehaviour
             yield break;
         }
 
-        // Å‘åƒRƒ“ƒ{”‚É’B‚µ‚½‚çƒRƒ“ƒ{I—¹iUŒ‚ÀsŒã‚Éƒ`ƒFƒbƒNj
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å®Œäº†å¾…ã¡
+        yield return new WaitForSeconds(attackAnimationDuration);
+
+        // å¾…æ©Ÿä¸­ã«æ’ƒç ´ã•ã‚ŒãŸå ´åˆ
+        if (!isComboActive || enemy == null || enemy.hp <= 0)
+        {
+            EndCombo();
+            yield break;
+        }
+
+        // æœ€å¤§ã‚³ãƒ³ãƒœæ•°ã«é”ã—ãŸã‚‰çµ‚äº†
         if (comboStep >= maxComboStep)
         {
             EndCombo();
             yield break;
         }
 
-        // Ÿ‚Ìƒ^ƒCƒ~ƒ“ƒOUI‚ğ•\¦
+        // æ¬¡ã®æ”»æ’ƒUIã‚’è¡¨ç¤º
         timingUI.Show(timingTime, timingWindowEnd);
         timer = 0f;
         canInput = true;
     }
 
 
+    /// <summary>
+    /// æ’ƒç ´ãªã©å¤–éƒ¨è¦å› ã§ã‚³ãƒ³ãƒœã‚’çµ‚äº†ï¼ˆã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ä¸­ã® StopAllCoroutines å›é¿ã®ãŸã‚æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ å®Ÿè¡Œï¼‰
+    /// </summary>
+    public void RequestEndCombo()
+    {
+        if (!isComboActive) return;
+        StartCoroutine(EndComboDeferred());
+    }
+
+    private IEnumerator EndComboDeferred()
+    {
+        yield return null;
+        EndCombo();
+    }
+
     private void EndCombo()
     {
+        if (!isComboActive) return;
+        isComboActive = false;
+        StopAllCoroutines();
         timingUI.Hide();
         comboStep = 1;
         onComboEnd.Invoke(0);
@@ -148,7 +176,7 @@ public class ComboAttack : MonoBehaviour
         timer = 0f;
     }
 
-    // ƒRƒ“ƒ{UŒ‚‚Ì“ü—Íİ’è
+    // ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã®è¨­å®š
     public void AttackTiming(float _timing , float _AttackEnd)
     {
           timingTime = _timing;
@@ -157,7 +185,7 @@ public class ComboAttack : MonoBehaviour
     }
     public void Inputs(Func<int,bool> _attackEvent, UnityEvent<int> _attackEnd, int _maxcombo, Character enemies)
     {
-        Debug.Log($"=== ComboAttack.Inputs() ŒÄ‚Î‚ê‚Ü‚µ‚½BMaxCombo: {_maxcombo} ===");
+        Debug.Log($"=== ComboAttack.Inputs() å‘¼ã°ã‚Œã¾ã—ãŸã€‚MaxCombo: {_maxcombo} ===");
         
         onComboEnd = _attackEnd;
         onComboAttack = _attackEvent;
@@ -166,10 +194,11 @@ public class ComboAttack : MonoBehaviour
         
         if (timingUI == null)
         {
-            Debug.LogError("ComboAttack: timingUI ‚ª null ‚Å‚·IInspector‚Åİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+            Debug.LogError("ComboAttack: timingUI ãŒ null ã§ã™ï¼Inspectorã§è¨­å®šã—ã¦ãã ã•ã„ã€‚");
             return;
         }
-        
+
+        isComboActive = true;
         StartAttack(0);
     }
 }

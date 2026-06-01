@@ -450,6 +450,12 @@ public class PlayerManager : MonoBehaviour
     private void PlayerAttackSelect()
     {
         Debug.Log($"=== PlayerAttackSelect() 呼ばれました ===");
+
+        if (GetFlagAllAttack(selectedSkill))
+        {
+            OnAttackSelected(getEnemy(), 0);
+            return;
+        }
         
         // 攻撃対象選択パネル
         List<Character> enemies = getEnemy();
@@ -526,6 +532,7 @@ public class PlayerManager : MonoBehaviour
         // キャラクターを開始位置に戻る
         selectedCharacter.CharacterObj.transform.DOMove(StartPosition, 1f).OnComplete(() =>
         {
+            selectedCharacter.GetBuffManager()?.TryExpireReloadBuffAtTurnEnd();
             selectedCharacter.StatusFlag = StatusFlag.None;
             // ターン処理を終了
             turnManager.FlagChange();
@@ -588,9 +595,14 @@ public class PlayerManager : MonoBehaviour
         {
             case SkillEffectType.Attack:
                 Debug.Log("StatusFlag.Attackに移行");
-                selectedCharacter.StatusFlag = StatusFlag.Attack;
-                if (selectedSkill.targetScope == TargetScope.All||selectedCharacter.AllAttack)
+                if (GetFlagAllAttack(selectedSkill))
+                {
                     OnAttackSelected(getEnemy(), 0);
+                }
+                else
+                {
+                    selectedCharacter.StatusFlag = StatusFlag.Attack;
+                }
                 break;
             case SkillEffectType.Heal:
                 Debug.Log("StatusFlag.Healに移行");
@@ -603,8 +615,7 @@ public class PlayerManager : MonoBehaviour
                 selectedCharacter.StatusFlag = StatusFlag.Buff;
                 if (selectedSkill.targetScope == TargetScope.All)
                     isActionPending = true;
-                //    //仮バフ効果適用
-                OnBuffSelected(getPlayer(), 0, selectedSkill.buffEffect[0]);
+                ApplySelectedBuffSkill();
                 break;
             case SkillEffectType.Revive:
                 if (defeatedAllies.Count == 0)
@@ -646,10 +657,12 @@ public class PlayerManager : MonoBehaviour
             isActionPending = true;
             return;
         }
+
+        bool isReloadAttack = IsReloadEnhancedNormalAttack(selectedSkill);
         
 
         // 全の攻撃スキルの場合、すべての敵に攻撃を適用
-        if (selectedSkill.targetScope == TargetScope.All||selectedCharacter.AllAttack)
+        if (GetFlagAllAttack(selectedSkill))
         {
             Debug.Log("全体攻撃として処理します");
             
@@ -668,6 +681,8 @@ public class PlayerManager : MonoBehaviour
                     Debug.Log($"{enemy}撃破！");
                 }
             }
+
+            ConsumeReloadBuffIfUsed(selectedSkill);
         } else
         {
             if (selectedSkill.canCombo)
@@ -705,8 +720,8 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        //コンボ以外
-        if(!selectedSkill.canCombo)
+        //コンボ以外（リロード攻撃はバフ消費前に判定済み）
+        if(!selectedSkill.canCombo || isReloadAttack)
         {
             //攻撃後バフの設定
             if (selectedCharacter.skills.Length > 0)
@@ -974,6 +989,70 @@ public class PlayerManager : MonoBehaviour
 
     #endregion
 
+    #region リロードバフ
+
+    private bool IsReloadEnhancedNormalAttack(SkillData skill)
+    {
+        if (skill == null || skill.skillName != ReloadBuff.NormalAttackSkillName)
+        {
+            return false;
+        }
+
+        if (selectedCharacter == null)
+        {
+            return false;
+        }
+
+        var buffManager = selectedCharacter.GetBuffManager();
+        return buffManager != null && buffManager.HasReloadBuff();
+    }
+
+    private bool GetFlagAllAttack(SkillData skill)
+    {
+        if (skill == null || selectedCharacter == null)
+        {
+            return false;
+        }
+
+        return skill.targetScope == TargetScope.All
+            || selectedCharacter.AllAttack
+            || IsReloadEnhancedNormalAttack(skill);
+    }
+
+    private void ConsumeReloadBuffIfUsed(SkillData skill)
+    {
+        if (!IsReloadEnhancedNormalAttack(skill))
+        {
+            return;
+        }
+
+        selectedCharacter.GetBuffManager()?.ConsumeReloadBuff();
+    }
+
+    private void ApplySelectedBuffSkill()
+    {
+        if (selectedSkill == null || selectedSkill.buffEffect == null || selectedSkill.buffEffect.Count == 0)
+        {
+            return;
+        }
+
+        BuffBase buff = selectedSkill.buffEffect[0];
+        if (buff == null)
+        {
+            return;
+        }
+
+        if (buff.buffRange == BuffRange.Self || buff.isSelfTarget)
+        {
+            OnBuffSelected(new List<Character>() { selectedCharacter }, 0, buff);
+            return;
+        }
+
+        OnBuffSelected(getPlayer(), 0, buff);
+    }
+
+    #endregion
+
     #region 行動処理の実装
     
     /// <summary>
@@ -983,18 +1062,56 @@ public class PlayerManager : MonoBehaviour
     {
         for (int i = 1; i < hitCount; i++)
         {
-            // 各ヒットの間に待機（連撃感を演出）
-            
             yield return new WaitForSeconds(0.15f);
-            if (enemy != null && enemy.CharacterObj != null && DamageEffectUI.Instance != null)
+
+            if (enemy == null || enemy.hp <= 0)
+                yield break;
+
+            if (enemy.CharacterObj != null && DamageEffectUI.Instance != null)
             {
                 Debug.Log($"連撃ダメージ処理 {i}/{hitCount}");
                 DamageEffectUI.Instance.ShowDamageEffectOnEnemy(enemy.CharacterObj, damage);
-                
-                // HPを減少
+
                 enemy.hp -= damage;
                 if (enemy.hp < 0) enemy.hp = 0;
+
+                if (enemy.hp <= 0)
+                {
+                    ProcessEnemyDefeat(enemy);
+                    yield break;
+                }
             }
+        }
+    }
+
+    /// <summary>
+    /// 敵撃破時の共通処理（リスト削除・UI更新・Destroy）
+    /// </summary>
+    private void ProcessEnemyDefeat(Character enemy)
+    {
+        if (enemy == null || enemy.hp > 0) return;
+        if (turnManager != null && !turnManager.enemys.Contains(enemy.gameObject)) return;
+
+        enemy.hp = 0;
+        Debug.Log($"[PlayerManager] {enemy.charactername} を撃破しました");
+        turnManager.enemys.Remove(enemy.gameObject);
+        turnManager.turnList.Remove(enemy.gameObject);
+        turnManager.RemoveCharacterFromTurnList(enemy);
+
+        Destroy(enemy.CharacterObj);
+
+        if (GameManager.Instance != null)
+        {
+            foreach (var playerChar in GameManager.Instance.PlayerData)
+            {
+                GameManager.Instance.AddExperience(playerChar, enemy.exp);
+            }
+        }
+
+        // コンボ中に撃破した場合はタイミング UI 付きコンボを終了
+        if (comboUI != null && selectedEnemy == enemy)
+        {
+            comboUI.RequestEndCombo();
         }
     }
     
@@ -1041,6 +1158,16 @@ public class PlayerManager : MonoBehaviour
             Debug.Log(skill.skillName + "のDB後最終ダメージ★" + finalDamage);
         }
 
+        if (IsReloadEnhancedNormalAttack(skill))
+        {
+            var reloadBuff = selectedCharacter.GetBuffManager()?.GetReloadBuffInstance()?.baseData as ReloadBuff;
+            if (reloadBuff != null)
+            {
+                finalDamage = Mathf.Max(0, Mathf.RoundToInt(finalDamage * reloadBuff.damageMultiplier));
+                Debug.Log($"[Reload] 最終ダメージ補正後: {finalDamage}");
+            }
+        }
+
         Debug.Log(skill.skillName + "の最終ダメージ★" + finalDamage);
               
         var hp = enemy.hp - finalDamage;
@@ -1063,8 +1190,8 @@ public class PlayerManager : MonoBehaviour
             seSource.PlayOneShot(selectedSkill.soundEffect);
         }
 
-        // 連撃処理（コルーチンで遅延表示）
-        if (skill.rengeki == true)
+        // 連撃処理（生存時のみ。撃破済みなら追加ヒット不要）
+        if (skill.rengeki == true && enemy.hp > 0)
         {
             Debug.Log("連撃ダメージ開始:連撃カウント:" + skill.rengekiCount);
             StartCoroutine(ShowRengekiDamage(enemy, finalDamage, skill.rengekiCount));
@@ -1127,30 +1254,11 @@ public class PlayerManager : MonoBehaviour
 
         if (enemy.hp <= 0)
         {
-            // エネミーが撃破された処理（成功時）
-            //エネミーの体力を0にする
-            enemy.hp = 0;
-            Debug.Log($"[PlayerManager] {enemy.charactername} を撃破しました");
-            turnManager.enemys.Remove(enemy.gameObject);
-            turnManager.turnList.Remove(enemy.gameObject);
-            
-            // ターン順リストからも削除
-            turnManager.RemoveCharacterFromTurnList(enemy);
-            
-            //エネミーのGameObjectを削除
-            Destroy(enemy.CharacterObj);
-
-            //経験値を付与する
-            foreach (var playerChar in GameManager.Instance.PlayerData)
-            {
-                GameManager.Instance.AddExperience(playerChar, enemy.exp); 
-            }
+            ProcessEnemyDefeat(enemy);
             return false;
         }
-        else
-        {
-            return true;
-        }
+
+        return true;
     }
 
     /// <summary>
@@ -1298,6 +1406,10 @@ public class PlayerManager : MonoBehaviour
                 
             case StatusEffect.MPRecovery:
                 VFXManager.Instance.PlayHealEffect(target.CharacterObj);
+                break;
+
+            case StatusEffect.None:
+                // VFX なし（バフ効果のみ）
                 break;
                 
             default:

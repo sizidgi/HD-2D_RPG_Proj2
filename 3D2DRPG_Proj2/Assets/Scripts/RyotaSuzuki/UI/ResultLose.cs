@@ -28,6 +28,7 @@ public class ResultLose : MonoBehaviour
     private float inputDelay = 0.3f;
 
     private bool canAcceptInput;
+    private bool showRequested;
     private Tween fadeTween;
 
     private void Awake()
@@ -40,9 +41,55 @@ public class ResultLose : MonoBehaviour
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
         }
+
+        canvasGroup.alpha = 0f;
+        canAcceptInput = false;
+    }
+
+    private void Start()
+    {
+        // Inspector で有効のままでも、敗北前は非表示・入力不可にする
+        showRequested = false;
+        canAcceptInput = false;
+        if (gameObject.activeSelf)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// 敗北時のみ TurnManager から呼び出す
+    /// </summary>
+    public void Show()
+    {
+        showRequested = true;
+        canAcceptInput = false;
+
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+            return;
+        }
+
+        BeginFadeIn();
     }
 
     private void OnEnable()
+    {
+        if (!showRequested)
+        {
+            canAcceptInput = false;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 0f;
+            }
+            return;
+        }
+
+        BeginFadeIn();
+    }
+
+    private void BeginFadeIn()
     {
         canAcceptInput = false;
 
@@ -69,6 +116,7 @@ public class ResultLose : MonoBehaviour
 
     private void OnDisable()
     {
+        showRequested = false;
         canAcceptInput = false;
         fadeTween?.Kill();
         fadeTween = null;
@@ -78,13 +126,19 @@ public class ResultLose : MonoBehaviour
     private IEnumerator EnableInputAfterDelay()
     {
         yield return new WaitForSeconds(inputDelay);
+
+        if (!showRequested || !gameObject.activeInHierarchy)
+        {
+            yield break;
+        }
+
         canAcceptInput = true;
         canvasGroup.interactable = true;
     }
 
     private void Update()
     {
-        if (!canAcceptInput) return;
+        if (!showRequested || !canAcceptInput) return;
 
         if (Input.GetKeyDown(KeyCode.Space) ||
             Input.GetKeyDown(KeyCode.Return) ||

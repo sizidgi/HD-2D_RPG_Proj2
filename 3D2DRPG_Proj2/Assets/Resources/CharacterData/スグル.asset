@@ -16,16 +16,16 @@ MonoBehaviour:
   characterIcon: {fileID: 21300000, guid: 2b40507cbc1c4144cb38c6c802fee20b, type: 3}
   standingImage: {fileID: -1895621947, guid: 9224725390951e24395a0ccd1ac8da54, type: 3}
   enemyCheckFlag: 0
-  hp: 319
-  mp: 109
-  atk: 27
+  hp: 300
+  mp: 100
+  atk: 20
   Int: 10
-  def: 23
+  def: 20
   spd: 32
-  maxHp: 319
-  maxMp: 109
-  exp: 700
-  level: 15
+  maxHp: 300
+  maxMp: 100
+  exp: 0
+  level: 10
   CharacterObj: {fileID: 2902170939649211471, guid: 7d3626a89213d394e991f82d2d99234b,
     type: 3}
   skills:
