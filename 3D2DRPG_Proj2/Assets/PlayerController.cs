@@ -160,22 +160,22 @@ public class PlayerController : MonoBehaviour
         bool isDash = false;
 
         // direction の更新は今まで通り入力ベース
-        if (Input.GetKey(KeyCode.D) || inputVector.x > 0.5f)
+        if (Input.GetKey(KeyCode.RightArrow) ||Input.GetKey(KeyCode.D) || inputVector.x > 0.5f)
         {
             animator.SetInteger("direction", 3);
             isMoving = true;
         }
-        if (Input.GetKey(KeyCode.A) || inputVector.x < -0.5f)
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A) || inputVector.x < -0.5f)
         {
             animator.SetInteger("direction", 2);
             isMoving = true;
         }
-        if (Input.GetKey(KeyCode.W) || inputVector.y > 0.5f)
+        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W) || inputVector.y > 0.5f)
         {
             animator.SetInteger("direction", 0);
             isMoving = true;
         }
-        if (Input.GetKey(KeyCode.S) || inputVector.y < -0.5f)
+        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S) || inputVector.y < -0.5f)
         {
             animator.SetInteger("direction", 1);
             isMoving = true;

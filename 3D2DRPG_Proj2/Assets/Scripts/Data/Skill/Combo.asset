@@ -17,7 +17,8 @@ MonoBehaviour:
     \u30D9\u30B9\u30C8\u30BF\u30A4\u30DF\u30F3\u30B0\u3059\u308C\u3070\u3059\u308B\u307B\u306910\uFF05\u30C0\u30E1\u30FC\u30B8\u3042\u304C\u308B"
   icon: {fileID: 0}
   soundEffect: {fileID: 0}
-  vfxPrefab: {fileID: 0}
+  vfxPrefab: {fileID: 1998830269065593993, guid: b70fbea4bc8994749ba52e4f560f9f28,
+    type: 3}
   animationName: 
   effectType: 0
   power: 1

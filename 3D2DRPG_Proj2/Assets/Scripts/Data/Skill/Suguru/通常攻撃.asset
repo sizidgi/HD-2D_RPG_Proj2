@@ -20,7 +20,7 @@ MonoBehaviour:
     type: 3}
   animationName: 
   effectType: 0
-  power: 25
+  power: 10
   mpCost: 0
   cooldown: 0
   hitCount: 1
@@ -31,7 +31,7 @@ MonoBehaviour:
   statusEffect: 0
   canCombo: 1
   DamageUp: 0
-  ComboDamage: 10
+  ComboDamage: 3
   comboNextSkill: {fileID: 11400000}
   timingWindowStart: 0.3
   timingWindowEnd: 10

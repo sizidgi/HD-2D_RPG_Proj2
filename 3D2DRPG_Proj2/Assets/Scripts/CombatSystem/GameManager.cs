@@ -276,6 +276,18 @@ public class GameManager : MonoBehaviour
             }
         }
         
+        // タイトルシーンに戻った時の処理
+        if (scene.name == titleSceneName)
+        {
+            BGMManager bgm = BGMManager.EnsureInstance();
+            bgm.StopBGM(fade: true);
+
+            if (showDebugLog)
+            {
+                Debug.Log("[GameManager] タイトルシーン：BGMを停止しました");
+            }
+        }
+
         // GameFieldシーンに戻った時の処理
         if (scene.name == gameFieldSceneName)
         {
@@ -484,10 +496,43 @@ public class GameManager : MonoBehaviour
         ClearBossBattleData();
         hasPostBattleDialogue = false;
         postBattleDialogueCSV = "";
+        currentBattleEnemy = null;
+        currentBattleBGM = "BattleNormal";
+
+        ResetPartyStatusAfterDefeat();
+        EnemyDataClear();
+        preBattleSnapshots.Clear();
+
+        BGMManager.EnsureInstance().StopBGM(fade: true);
 
         OnBattleEnd?.Invoke();
 
         StartCoroutine(TransitionToTitle());
+    }
+
+    /// <summary>
+    /// 敗北時：パーティのHP/MPを全回復（DontDestroyOnLoadのPlayerDataを次戦闘用にリセット）
+    /// </summary>
+    private void ResetPartyStatusAfterDefeat()
+    {
+        if (PlayerData == null || PlayerData.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var character in PlayerData)
+        {
+            if (character == null) continue;
+
+            character.hp = character.maxHp;
+            character.mp = character.maxMp;
+            character.StatusFlag = StatusFlag.End;
+        }
+
+        if (showDebugLog)
+        {
+            Debug.Log($"[GameManager] 敗北後パーティステータスをリセットしました（{PlayerData.Count}人）");
+        }
     }
 
     /// <summary>
