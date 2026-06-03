@@ -32,6 +32,12 @@ public class DamageEffectUI : MonoBehaviour
     [SerializeField, Header("エフェクトの親オブジェクト（ワールド空間、任意）")]
     private Transform effectParent;
 
+    [SerializeField, Header("デバッグ")]
+    [Tooltip("ONのとき GameManager の Debug Mode を参照。OFFなら下のローカル設定を使用")]
+    private bool useGameManagerDebugMode = true;
+    [SerializeField, Tooltip("被ダメ時の当たり判定枠（damageEffectPrefab）を表示する")]
+    private bool showHitboxDebug = false;
+
     private static DamageEffectUI instance;
     public static DamageEffectUI Instance
     {
@@ -93,8 +99,8 @@ public class DamageEffectUI : MonoBehaviour
             return;
         }
 
-        // 3Dエフェクトを表示（任意、ワールド空間）
-        if (damageEffectPrefab != null)
+        // 3Dエフェクト（当たり判定デバッグ枠）はデバッグモード時のみ
+        if (damageEffectPrefab != null && IsHitboxDebugEnabled())
         {
             // エフェクトの位置を計算（敵の前、ワールド座標）
             Vector3 effectPosition = enemyTransform.position + damageEffectOffset;
@@ -196,6 +202,16 @@ public class DamageEffectUI : MonoBehaviour
         {
             Destroy(effect);
         }
+    }
+
+    private bool IsHitboxDebugEnabled()
+    {
+        if (useGameManagerDebugMode && GameManager.Instance != null)
+        {
+            return GameManager.Instance.IsDebugMode;
+        }
+
+        return showHitboxDebug;
     }
 
     /// <summary>

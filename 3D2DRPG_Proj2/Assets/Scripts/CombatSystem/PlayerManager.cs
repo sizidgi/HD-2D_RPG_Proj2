@@ -525,9 +525,13 @@ public class PlayerManager : MonoBehaviour
     {
         StartCoroutine(AttackEndTick());
     }
+    private const float ActionEndFallbackSeconds = 1f;
+    private const float ActionEndMaxWaitSeconds = 8f;
+    private const float ActionEndMinWaitSeconds = 0.35f;
+
     private IEnumerator AttackEndTick()
     {
-        yield return new WaitForSeconds(1f); // 攻撃エフェクトの表示時間に合わせて待機
+        yield return WaitForPlayerActionAnimationComplete();
         // 継続ダメージ・バフターン減算は TurnManager（前に出る直前）のみで処理
         // キャラクターを開始位置に戻る
         selectedCharacter.CharacterObj.transform.DOMove(StartPosition, 1f).OnComplete(() =>
@@ -537,6 +541,60 @@ public class PlayerManager : MonoBehaviour
             // ターン処理を終了
             turnManager.FlagChange();
         });
+    }
+
+    /// <summary>
+    /// 行動アニメーションの完了を待つ（全スキル共通・開始位置へ戻る前）
+    /// </summary>
+    private IEnumerator WaitForPlayerActionAnimationComplete()
+    {
+        Animator animator = selectedCharacter?.PlayerAnimator;
+        if (animator == null || !animator.isActiveAndEnabled)
+        {
+            yield return new WaitForSeconds(ActionEndFallbackSeconds);
+            yield break;
+        }
+
+        const int layer = 0;
+        yield return null;
+        yield return null;
+
+        float elapsed = 0f;
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(layer);
+
+        // 攻撃モーション未開始（バフ・回復のみ等で Idle ループのまま）
+        if (!animator.IsInTransition(layer) && state.loop)
+        {
+            yield return new WaitForSeconds(ActionEndMinWaitSeconds);
+            yield break;
+        }
+
+        while (elapsed < ActionEndMaxWaitSeconds)
+        {
+            if (animator.IsInTransition(layer))
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+                continue;
+            }
+
+            state = animator.GetCurrentAnimatorStateInfo(layer);
+
+            if (!state.loop && state.normalizedTime >= 0.95f)
+                break;
+
+            if (state.loop && elapsed > 0.1f)
+                break;
+
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
+
+        while (animator.IsInTransition(layer) && elapsed < ActionEndMaxWaitSeconds)
+        {
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
     }
 
     #endregion
@@ -1070,6 +1128,7 @@ public class PlayerManager : MonoBehaviour
     private int CalculateComboBurstDamage(SkillData skill, Character enemy, int comboHitCount)
     {
         if (selectedCharacter == null || enemy == null || skill == null) return 0;
+        if (enemy.IsInvincible()) return 0;
 
         int basePower = (int)skill.power;
         int intStat = Mathf.Max(1, selectedCharacter.Int);
@@ -1101,10 +1160,8 @@ public class PlayerManager : MonoBehaviour
             if (enemy.CharacterObj != null && DamageEffectUI.Instance != null)
             {
                 Debug.Log($"連撃ダメージ処理 {i}/{hitCount}");
-                DamageEffectUI.Instance.ShowDamageEffectOnEnemy(enemy.CharacterObj, damage);
-
-                enemy.hp -= damage;
-                if (enemy.hp < 0) enemy.hp = 0;
+                int appliedDamage = enemy.TakeDamage(damage);
+                DamageEffectUI.Instance.ShowDamageEffectOnEnemy(enemy.CharacterObj, appliedDamage);
 
                 if (enemy.hp <= 0)
                 {
@@ -1160,9 +1217,6 @@ public class PlayerManager : MonoBehaviour
             playerSideAnimator.SetTrigger("Attack");
         }
 
-        //アニメーションが流れるのを待つ
-        new WaitForSeconds(2.5f);
-
         int effectiveDef = enemy.GetEffectiveDefense();
         var finalDamage = 0;
 
@@ -1211,15 +1265,14 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        Debug.Log(skill.skillName + "の最終ダメージ★" + finalDamage);
-              
-        var hp = enemy.hp - finalDamage;
-        enemy.hp = (int)math.floor(hp);
+        finalDamage = Mathf.Max(0, finalDamage);
+        int appliedDamage = enemy.TakeDamage(finalDamage);
+        Debug.Log(skill.skillName + "の最終ダメージ★" + appliedDamage);
         
         // ダメージエフェクトを表示（敵の位置の前に表示）
         if (DamageEffectUI.Instance != null && enemy.CharacterObj != null)
         {
-            DamageEffectUI.Instance.ShowDamageEffectOnEnemy(enemy.CharacterObj, finalDamage);
+            DamageEffectUI.Instance.ShowDamageEffectOnEnemy(enemy.CharacterObj, appliedDamage);
             
             // スキルのVFXを発火
             DamageEffectUI.Instance.PlaySkillVFX(skill, enemy.CharacterObj);
@@ -1237,7 +1290,7 @@ public class PlayerManager : MonoBehaviour
         if (skill.rengeki == true && enemy.hp > 0)
         {
             Debug.Log("連撃ダメージ開始:連撃カウント:" + skill.rengekiCount);
-            StartCoroutine(ShowRengekiDamage(enemy, finalDamage, skill.rengekiCount));
+            StartCoroutine(ShowRengekiDamage(enemy, appliedDamage, skill.rengekiCount));
         }
         
         // ダメージ適用後、ボスイベントをチェック
@@ -1264,7 +1317,7 @@ public class PlayerManager : MonoBehaviour
         if(skill.atkAftHeal == true && skill.wariai > 0)
         {
             // 与えたダメージの一定割合を回復量として計算
-            int healAmount = Mathf.RoundToInt(finalDamage / skill.wariai);
+            int healAmount = Mathf.RoundToInt(appliedDamage / skill.wariai);
             skill.wariaiHeal = healAmount;
             
             if (selectedCharacter != null && healAmount > 0)

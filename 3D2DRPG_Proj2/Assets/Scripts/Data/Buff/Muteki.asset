@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b034ba8d830c1ac45b0c63e21fe1d5fc, type: 3}
+  m_Script: {fileID: 11500000, guid: e7f6a5b4c3d2918071625344a5b6c7d8, type: 3}
   m_Name: Muteki
   m_EditorClassIdentifier: 
   buffId: 
@@ -22,4 +22,3 @@ MonoBehaviour:
   sourceCharacter: {fileID: 0}
   isSelfTarget: 1
   statusEffect: 8
-  defenseMultiplier: 9

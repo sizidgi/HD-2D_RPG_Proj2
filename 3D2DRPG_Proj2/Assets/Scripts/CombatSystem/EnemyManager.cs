@@ -463,11 +463,14 @@ public class EnemyManager : MonoBehaviour
             power = attacker != null ? attacker.atk : 1;
         }
 
-        var targethp = target.hp - power;
-        target.hp = (int)math.floor(targethp);
+        int damageAmount = Mathf.Max(0, Mathf.RoundToInt(power));
+        int appliedDamage = target.TakeDamage(damageAmount);
 
         // 被弾アニメーション再生
-        playerDamageAnimation(target);
+        if (appliedDamage > 0)
+        {
+            playerDamageAnimation(target);
+        }
 
         //スキルにバフがあるなら適用させる。
         if (skill != null && skill.buffEffect != null && skill.buffEffect.Count > 0)
@@ -541,13 +544,13 @@ public class EnemyManager : MonoBehaviour
                 }
             }
         }
-        Debug.Log($"{attacker.name} が {target.name} に {power} ダメージ。残りHP: {target.hp}");
+        Debug.Log($"{attacker.name} が {target.name} に {appliedDamage} ダメージ。残りHP: {target.hp}");
 
         // ダメージエフェクトを表示（攻撃を受けたターゲットの位置の前に表示）
         // 注: 敵がプレイヤーを攻撃する場合、プレイヤーの位置にエフェクトを表示します
         if (DamageEffectUI.Instance != null && target.CharacterObj != null)
         {
-            DamageEffectUI.Instance.ShowDamageEffectOnEnemy(target.CharacterObj, power);
+            DamageEffectUI.Instance.ShowDamageEffectOnEnemy(target.CharacterObj, appliedDamage);
             
             // スキルのVFXを発火
             if (skill != null)
@@ -597,12 +600,15 @@ public class EnemyManager : MonoBehaviour
         //各キャラに全体攻撃、耐性を含んだ計算は未実装。
         foreach (Character chara in target)
         {
-            var targethp = chara.hp - power;
-            chara.hp = (int)math.floor(targethp);
-            Debug.Log($"{attacker.name} が {chara.name} に {power} ダメージ。残りHP: {chara.hp}");
+            int damageAmount = Mathf.Max(0, Mathf.RoundToInt(power));
+            int appliedDamage = chara.TakeDamage(damageAmount);
+            Debug.Log($"{attacker.name} が {chara.name} に {appliedDamage} ダメージ。残りHP: {chara.hp}");
 
             // 被弾アニメーション再生
-            playerDamageAnimation(chara);
+            if (appliedDamage > 0)
+            {
+                playerDamageAnimation(chara);
+            }
 
             //スキルにバフがあるなら適用させる。
             if (skill != null && skill.buffEffect != null && skill.buffEffect.Count > 0)
@@ -649,7 +655,7 @@ public class EnemyManager : MonoBehaviour
             // 注: 敵がプレイヤーを攻撃する場合、プレイヤーの位置にエフェクトを表示します
             if (DamageEffectUI.Instance != null && chara.CharacterObj != null)
             {
-                DamageEffectUI.Instance.ShowDamageEffectOnEnemy(chara.CharacterObj, power);
+                DamageEffectUI.Instance.ShowDamageEffectOnEnemy(chara.CharacterObj, appliedDamage);
                 
                 // スキルのVFXを発火
                 if (skill != null)
@@ -1095,16 +1101,16 @@ public class EnemyManager : MonoBehaviour
     {
         if (character == null) return;
 
-        character.hp = Mathf.Max(0, character.hp - amount);
+        int appliedDamage = character.TakeDamage(amount);
 
-        if (isPlayerTarget)
+        if (isPlayerTarget && appliedDamage > 0)
         {
             playerDamageAnimation(character);
         }
 
         if (character.CharacterObj != null && DamageEffectUI.Instance != null)
         {
-            DamageEffectUI.Instance.ShowDamageEffectOnEnemy(character.CharacterObj, amount);
+            DamageEffectUI.Instance.ShowDamageEffectOnEnemy(character.CharacterObj, appliedDamage);
         }
     }
 

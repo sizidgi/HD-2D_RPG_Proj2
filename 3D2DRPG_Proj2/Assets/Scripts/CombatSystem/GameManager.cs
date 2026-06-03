@@ -32,6 +32,11 @@ public class GameManager : MonoBehaviour
 
     [Header("デバッグ")]
     [SerializeField] private bool showDebugLog = true;
+    [SerializeField, Tooltip("ONのとき戦闘の当たり判定枠などデバッグ表示を有効化")]
+    private bool debugMode = false;
+
+    /// <summary>デバッグ用ビジュアル（当たり判定枠など）の表示可否</summary>
+    public bool IsDebugMode => debugMode;
     public int isi = 1; // 既存の変数を保持
 
     [Header("バトルデータ")]

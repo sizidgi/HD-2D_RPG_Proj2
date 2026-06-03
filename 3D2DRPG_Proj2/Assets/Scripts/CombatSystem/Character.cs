@@ -103,10 +103,27 @@ public class Character: MonoBehaviour
         return damage;
     }
 
-    // ダメージを受ける
-    public void TakeDamage(int damage)
+    /// <summary>Muteki（無の創造）などの無敵状態か</summary>
+    public bool IsInvincible()
     {
-        hp = Mathf.Max(0, hp - damage);
+        return buffManager != null && buffManager.IsInvincible();
+    }
+
+    /// <summary>被ダメージを計算用の値から実際に適用する量へ変換（無敵時は0）</summary>
+    public int ResolveIncomingDamage(int rawDamage)
+    {
+        if (rawDamage <= 0) return 0;
+        if (IsInvincible()) return 0;
+        return rawDamage;
+    }
+
+    /// <summary>ダメージを受ける。戻り値は実際に適用したダメージ量。</summary>
+    public int TakeDamage(int damage)
+    {
+        int applied = ResolveIncomingDamage(damage);
+        if (applied <= 0) return 0;
+        hp = Mathf.Max(0, hp - applied);
+        return applied;
     }
 
     // HP/MP回復

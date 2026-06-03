@@ -165,25 +165,25 @@ public class CharacterBuffManager : MonoBehaviour
             int damage = 0;
             string damageType = "";
             
-            if (buff.baseData is Poison poisonBuff)
+            if (!ownerCharacter.IsInvincible() && buff.baseData is Poison poisonBuff)
             {
                 damage = poisonBuff.damagePerTurn;
                 damageType = "毒";
-                ownerCharacter.hp -= damage;
+                ownerCharacter.TakeDamage(damage);
                 Debug.Log($"{ownerCharacter.charactername}は毒で{damage}ダメージを受けた");
             }
-            else if (buff.baseData is Burn burnBuff)
+            else if (!ownerCharacter.IsInvincible() && buff.baseData is Burn burnBuff)
             {
                 damage = burnBuff.damagePerTurn;
                 damageType = "やけど";
-                ownerCharacter.hp -= damage;
+                ownerCharacter.TakeDamage(damage);
                 Debug.Log($"{ownerCharacter.charactername}はやけどで{damage}ダメージを受けた");
             }
-            else if (buff.baseData is Makituki makitukiBuff)
+            else if (!ownerCharacter.IsInvincible() && buff.baseData is Makituki makitukiBuff)
             {
                 damage = makitukiBuff.damagePerTurn;
                 damageType = "巻きつき";
-                ownerCharacter.hp -= damage;
+                ownerCharacter.TakeDamage(damage);
                 Debug.Log($"{ownerCharacter.charactername}は巻きつきで{damage}ダメージを受けた");
             }
             
@@ -315,6 +315,19 @@ public class CharacterBuffManager : MonoBehaviour
         return Mathf.RoundToInt(effectiveAtk);
     }
     
+    /// <summary>MutekiBuff が有効なら被ダメージ0</summary>
+    public bool IsInvincible()
+    {
+        foreach (var buff in activeBuffs)
+        {
+            if (buff.baseData is MutekiBuff)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// <summary>
     /// バフ適用後の防御力を取得
     /// </summary>
