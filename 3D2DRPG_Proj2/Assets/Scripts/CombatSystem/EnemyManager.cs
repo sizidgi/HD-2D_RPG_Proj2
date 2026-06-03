@@ -274,7 +274,8 @@ public class EnemyManager : MonoBehaviour
             // 3. 攻撃処理を実行
             if (chosenSkill != null && chosenSkill.effectType == SkillEffectType.ExtraAction)
             {
-                //なにもしない。下の追加処理で動くので
+                PlayEnemySkillVisual(chosenSkill, actingEnemy);
+                // 追加行動は下の hasExtraActions で実行
             }
             else if (chosenSkill.effectType == SkillEffectType.Buff)
             {
@@ -540,7 +541,7 @@ public class EnemyManager : MonoBehaviour
                 // バフスキルの場合のみエフェクトを表示
                 if (skill.effectType == SkillEffectType.Buff)
                 {
-                    PlayBuffVFX(buff, target);
+                    PlayBuffSkillVFX(skill, target, buff);
                 }
             }
         }
@@ -640,7 +641,7 @@ public class EnemyManager : MonoBehaviour
                                 // バフスキルの場合のみエフェクトを表示
                                 if (skill.effectType == SkillEffectType.Buff)
                                 {
-                                    PlayBuffVFX(buff, chara);
+                                    PlayBuffSkillVFX(skill, chara, buff);
                                 }
                             }
    
@@ -698,7 +699,7 @@ public class EnemyManager : MonoBehaviour
                         case BuffRange.Self:
                             // 自分自身にバフ
                             target.ApplyBuff(buff, target);
-                            if (isBuffSkill) PlayBuffVFX(buff, target);
+                            if (isBuffSkill) PlayBuffSkillVFX(skill, target, buff);
                             break;
 
                         case BuffRange.Ally:
@@ -708,7 +709,7 @@ public class EnemyManager : MonoBehaviour
                             {
                                 var ally = allies[UnityEngine.Random.Range(0, allies.Count)];
                                 ally.ApplyBuff(buff, target);
-                                if (isBuffSkill) PlayBuffVFX(buff, ally);
+                                if (isBuffSkill) PlayBuffSkillVFX(skill, ally, buff);
                             }
                             break;
 
@@ -720,7 +721,7 @@ public class EnemyManager : MonoBehaviour
                                 BuffInstance allyBuff = new BuffInstance(buffBase);
                                 allyBuff.remainingTurns = skill.buffDuration;
                                 ally.ApplyBuff(allyBuff, target);
-                                if (isBuffSkill) PlayBuffVFX(allyBuff, ally);
+                                if (isBuffSkill) PlayBuffSkillVFX(skill, ally, allyBuff);
                             }
                             break;
                     }
@@ -734,7 +735,7 @@ public class EnemyManager : MonoBehaviour
                         var selectedPlayer = Player[UnityEngine.Random.Range(0, Player.Count)];
 
                         selectedPlayer.ApplyBuff(buff, target);
-                        if (isBuffSkill) PlayBuffVFX(buff, selectedPlayer);
+                        if (isBuffSkill) PlayBuffSkillVFX(skill, selectedPlayer, buff);
                         playerDamageAnimation(selectedPlayer);
                     }
                     
@@ -748,7 +749,7 @@ public class EnemyManager : MonoBehaviour
                         var selectedPlayer = Player[UnityEngine.Random.Range(0, Player.Count)];
 
                         selectedPlayer.ApplyBuff(buff, target);
-                        if (isBuffSkill) PlayBuffVFX(buff, selectedPlayer);
+                        if (isBuffSkill) PlayBuffSkillVFX(skill, selectedPlayer, buff);
                         playerDamageAnimation(selectedPlayer);
                     }
                     
@@ -776,7 +777,7 @@ public class EnemyManager : MonoBehaviour
                         }
 
                         enemy.ApplyBuff(buff, target);
-                        if (isBuffSkill) PlayBuffVFX(buff, enemy);
+                        if (isBuffSkill) PlayBuffSkillVFX(skill, enemy, buff);
                         playerDamageAnimation(enemy);
                     }
                     
@@ -788,7 +789,7 @@ public class EnemyManager : MonoBehaviour
                     {
                         case BuffRange.Self:
                             target.ApplyBuff(buff, target);
-                            if (isBuffSkill) PlayBuffVFX(buff, target);
+                            if (isBuffSkill) PlayBuffSkillVFX(skill, target, buff);
                             Debug.Log($"{target.charactername}にマジックカウンター付与");
                             break;
                     }
@@ -800,7 +801,7 @@ public class EnemyManager : MonoBehaviour
                     {
                         case BuffRange.Self:
                             target.ApplyBuff(buff, target);
-                            if (isBuffSkill) PlayBuffVFX(buff, target);
+                            if (isBuffSkill) PlayBuffSkillVFX(skill, target, buff);
                             break;
                         case BuffRange.AllEnemies:
 
@@ -808,7 +809,7 @@ public class EnemyManager : MonoBehaviour
                             foreach (var enemy in list)
                             {
                                 enemy.ApplyBuff(buff, target);
-                                if (isBuffSkill) PlayBuffVFX(buff, enemy);
+                                if (isBuffSkill) PlayBuffSkillVFX(skill, enemy, buff);
                             }
                             break;
                     }
@@ -829,7 +830,7 @@ public class EnemyManager : MonoBehaviour
 
                                 // 自分自身にバフを適用
                                 target.ApplyBuff(buff, target);
-                                if (isBuffSkill) PlayBuffVFX(buff, target);
+                                if (isBuffSkill) PlayBuffSkillVFX(skill, target, buff);
 
                                 Debug.Log($"{target.charactername}が{lockedEnemy.charactername}をロックオン");
                             }
@@ -845,7 +846,7 @@ public class EnemyManager : MonoBehaviour
                             buff.remainingTurns = 1;
                             // 自分自身にバフを適用
                             target.ApplyBuff(buff, target);
-                            if (isBuffSkill) PlayBuffVFX(buff, target);
+                            if (isBuffSkill) PlayBuffSkillVFX(skill, target, buff);
                             break;
 
                     }
@@ -991,6 +992,36 @@ public class EnemyManager : MonoBehaviour
         return Ltarget;
     }
     
+    private void PlayEnemySkillVisual(SkillData skill, Character caster)
+    {
+        if (skill == null || skill.vfxPrefab == null || DamageEffectUI.Instance == null)
+        {
+            return;
+        }
+
+        GameObject targetObject = caster != null ? caster.CharacterObj : null;
+        DamageEffectUI.Instance.PlaySkillVFX(skill, targetObject);
+    }
+
+    /// <summary>
+    /// バフスキル用VFX。SkillData.vfxPrefab があればそれを優先、なければバフ種別のデフォルト。
+    /// </summary>
+    private void PlayBuffSkillVFX(SkillData skill, Character target, BuffInstance buff)
+    {
+        if (target == null || target.CharacterObj == null) return;
+
+        if (skill != null && skill.vfxPrefab != null && DamageEffectUI.Instance != null)
+        {
+            DamageEffectUI.Instance.PlaySkillVFX(skill, target.CharacterObj);
+            return;
+        }
+
+        if (buff != null)
+        {
+            PlayBuffVFX(buff, target);
+        }
+    }
+
     /// <summary>
     /// バフの種類に応じたVFXを再生
     /// </summary>

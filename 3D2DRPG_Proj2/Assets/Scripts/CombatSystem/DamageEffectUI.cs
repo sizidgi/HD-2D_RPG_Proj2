@@ -331,22 +331,30 @@ public class DamageEffectUI : MonoBehaviour
     /// <param name="target">対象のGameObject</param>
     public void PlaySkillVFX(SkillData skill, GameObject target)
     {
-        if (skill == null || target == null)
+        if (skill == null || skill.vfxPrefab == null)
         {
             return;
         }
 
-        // スキルにVFXが設定されている場合のみ発火
-        if (skill.vfxPrefab != null)
+        // 画面全体演出（ザ・ワールド等）
+        if (skill.vfxPrefab.GetComponent<ScreenSpaceSkillVfx>() != null)
         {
-            if (VFXManager.Instance != null)
-            {
-                VFXManager.Instance.PlayVFXOnTarget(skill.vfxPrefab, target);
-            }
-            else
-            {
-                Debug.LogWarning("DamageEffectUI: VFXManagerが見つかりません");
-            }
+            Instantiate(skill.vfxPrefab);
+            return;
+        }
+
+        if (target == null)
+        {
+            return;
+        }
+
+        if (VFXManager.Instance != null)
+        {
+            VFXManager.Instance.PlayVFXOnTarget(skill.vfxPrefab, target);
+        }
+        else
+        {
+            Debug.LogWarning("DamageEffectUI: VFXManagerが見つかりません");
         }
     }
 }

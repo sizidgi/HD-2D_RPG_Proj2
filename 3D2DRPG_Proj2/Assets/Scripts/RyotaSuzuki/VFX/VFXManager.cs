@@ -98,22 +98,29 @@ public class VFXManager : MonoBehaviour
             return;
         }
 
-        Vector3 spawnPos = target.transform.position + (offset == default ? effectOffset : offset) + Vector3.up * 1.5f;
-        GameObject vfxInstance = Instantiate(vfxPrefab, spawnPos, Quaternion.identity);
+        Vector3 localOffset = (offset == default ? effectOffset : offset) + Vector3.up * 1.5f;
+        GameObject vfxInstance = Instantiate(vfxPrefab, target.transform);
+        vfxInstance.transform.localPosition = localOffset;
+        vfxInstance.transform.localRotation = Quaternion.identity;
 
-        // ParticleSystemがあれば自動再生
-        ParticleSystem ps = vfxInstance.GetComponent<ParticleSystem>();
-        if (ps != null)
+        ParticleSystem[] particleSystems = vfxInstance.GetComponentsInChildren<ParticleSystem>(true);
+        if (particleSystems.Length > 0)
         {
-            ps.Play();
-            // ParticleSystemの場合は自動で時間を計算
-            float particleDuration = ps.main.duration + ps.main.startLifetime.constantMax;
+            float particleDuration = 0f;
+            foreach (ParticleSystem ps in particleSystems)
+            {
+                ps.Play();
+                particleDuration = Mathf.Max(
+                    particleDuration,
+                    ps.main.duration + ps.main.startLifetime.constantMax);
+            }
             Destroy(vfxInstance, particleDuration);
         }
         else
         {
-            // ParticleSystemがない場合は指定時間後に削除
-            Destroy(vfxInstance, duration);
+            // メッシュ／シェーダー系（Shield FX など）はターゲットに追従して表示
+            float lifetime = duration > 0f ? duration : 6f;
+            Destroy(vfxInstance, lifetime);
         }
     }
 

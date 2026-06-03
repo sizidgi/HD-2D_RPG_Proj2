@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8765432109876543210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8765432109876543211}
+  - component: {fileID: 8765432109876543212}
+  m_Layer: 0
+  m_Name: ZaWarudoScreenVFX
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8765432109876543211
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8765432109876543210}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8765432109876543212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8765432109876543210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7c8d9e0f1a24365869708f9e0d1c2b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  convergeDuration: 2
+  holdDuration: 4
+  scatterDuration: 1.1
+  panelCount: 36
+  panelSize: {x: 64, y: 160}
+  chainInterval: 0.055
+  startRadius: 1350
+  spiralTurns: 1.15
+  angleOffsetDegrees: -18
+  rotateWithSpiral: 1
+  canvasSortOrder: 8000
+  flashPeakAlpha: 0.18
+  vanishFadeStart: 0.78
+  scatterMaxRadius: 1400
+  scatterStaggerPerPanel: 0.02
+  scatterFadeStartAt: 0.6
+  scatterStartScale: 0.35
+  battleVolume: {fileID: 0}
+  postEffectStrength: 0.45
+  targetSaturation: -45
+  targetContrastBoost: 4
+  targetVignetteBoost: 0.18
+  targetPostExposure: -0.12
+  targetInvertIntensity: 0.85

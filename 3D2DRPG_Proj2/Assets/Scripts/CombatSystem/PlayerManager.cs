@@ -1427,7 +1427,7 @@ public class PlayerManager : MonoBehaviour
                 if (target != null)
                 {
                     target.ApplyBuff(buff, selectedCharacter);
-                    if (isBuffSkill) PlayBuffVFX(buff, target);
+                    if (isBuffSkill) PlayBuffSkillVFX(selectedSkill, target, buff);
                 }
                 break;
             case BuffRange.Ally:
@@ -1436,7 +1436,7 @@ public class PlayerManager : MonoBehaviour
                 if (target != null)
                 {
                     target.ApplyBuff(buff,target);
-                    if (isBuffSkill) PlayBuffVFX(buff, target);
+                    if (isBuffSkill) PlayBuffSkillVFX(selectedSkill, target, buff);
                 }
                 break;
             case BuffRange.AllAllies:
@@ -1452,7 +1452,7 @@ public class PlayerManager : MonoBehaviour
                         BuffInstance playerBuff = new BuffInstance(buff.baseData);
                         playerBuff.remainingTurns = buff.remainingTurns;
                         player.ApplyBuff(playerBuff, player);
-                        if (isBuffSkill) PlayBuffVFX(buff, player);
+                        if (isBuffSkill) PlayBuffSkillVFX(selectedSkill, player, buff);
                     }
                 }
                 break;
@@ -1466,13 +1466,32 @@ public class PlayerManager : MonoBehaviour
                         BuffInstance enemyBuff = new BuffInstance(buff.baseData);
                         enemyBuff.remainingTurns = buff.remainingTurns;
                         enemy.ApplyBuff(enemyBuff, enemy);
-                        if (isBuffSkill) PlayBuffVFX(buff, enemy);
+                        if (isBuffSkill) PlayBuffSkillVFX(selectedSkill, enemy, buff);
                     }
                 }
                 break;
         }
     }
     
+    /// <summary>
+    /// バフスキル用VFX。SkillData.vfxPrefab があればそれを優先、なければバフ種別のデフォルト。
+    /// </summary>
+    private void PlayBuffSkillVFX(SkillData skill, Character target, BuffInstance buff)
+    {
+        if (target == null || target.CharacterObj == null) return;
+
+        if (skill != null && skill.vfxPrefab != null && DamageEffectUI.Instance != null)
+        {
+            DamageEffectUI.Instance.PlaySkillVFX(skill, target.CharacterObj);
+            return;
+        }
+
+        if (buff != null)
+        {
+            PlayBuffVFX(buff, target);
+        }
+    }
+
     /// <summary>
     /// バフの種類に応じたVFXを再生
     /// </summary>
