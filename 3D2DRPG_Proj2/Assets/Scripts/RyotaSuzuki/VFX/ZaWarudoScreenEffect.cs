@@ -18,6 +18,8 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
     }
 
     private static Sprite _cachedWhiteSprite;
+    private static readonly int InvertIntensityId = Shader.PropertyToID("_Intensity");
+    private static Shader _invertOverlayShader;
 
     [Header("タイミング")]
     [SerializeField] private float convergeDuration = 0.9f;
@@ -59,23 +61,23 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
     [SerializeField] private float targetContrastBoost = 4f;
     [SerializeField] private float targetVignetteBoost = 0.18f;
     [SerializeField] private float targetPostExposure = -0.12f;
-    [Header("ネガ反転（ザワールド中のみ。Profile の Intensity は常に 0）")]
+    [Header("ネガ反転（ザワールド中のみ・UIオーバーレイ）")]
     [Range(0f, 1f)]
-    [SerializeField] private float targetInvertIntensity = 0.85f;
+    [SerializeField] private float targetInvertIntensity = 1f;
 
     private readonly List<ChainPanel> _panels = new List<ChainPanel>();
 
+    private Image _invertOverlay;
+    private Material _invertMaterial;
     private Image _flashOverlay;
     private Canvas _canvas;
     private ColorAdjustments _colorAdjustments;
     private Vignette _vignette;
-    private ColorInvertVolume _colorInvert;
 
     private float _origSaturation;
     private float _origContrast;
     private float _origVignetteIntensity;
     private float _origPostExposure;
-    private float _origInvertIntensity;
     private float _targetSaturation;
     private float _targetContrast;
     private float _targetVignette;
@@ -84,12 +86,12 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
     private bool _hasOrigColor;
     private bool _hasOrigVignette;
     private bool _hasOrigExposure;
-    private bool _hasOrigInvert;
 
     private float _angleOffsetRad;
     private float _chainTailOffset;
     private Sequence _sequence;
     private bool _volumeCaptured;
+    private bool _hasTeardown;
 
     private void Start()
     {
@@ -98,16 +100,12 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
 
     private void OnDestroy()
     {
-        _sequence?.Kill();
-        RestoreVolumeImmediate();
-        if (_canvas != null)
-        {
-            Destroy(_canvas.gameObject);
-        }
+        Teardown();
     }
 
     public void Play()
     {
+        _targetInvert = targetInvertIntensity;
         BuildScreenUi();
         CaptureVolumeState();
         ApplyVolumeBlend(0f);
@@ -132,6 +130,8 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
         canvasGo.AddComponent<GraphicRaycaster>();
 
         var sprite = GetWhiteSprite();
+
+        CreateInvertOverlay(canvasGo.transform, sprite);
 
         _flashOverlay = CreateImage(canvasGo.transform, "Flash", sprite, new Color(1f, 1f, 1f, 0f));
         StretchFullScreen(_flashOverlay.rectTransform);
@@ -159,6 +159,40 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
         }
 
         ApplyChainHead(0f, inward: true);
+    }
+
+    private void CreateInvertOverlay(Transform parent, Sprite sprite)
+    {
+        if (_invertOverlayShader == null)
+        {
+            _invertOverlayShader = Shader.Find("RyotaSuzuki/UI/ScreenInvertOverlay");
+        }
+
+        if (_invertOverlayShader == null)
+        {
+            Debug.LogWarning("[ZaWarudoScreenEffect] ScreenInvertOverlay シェーダが見つかりません。ネガ反転はスキップします。");
+            return;
+        }
+
+        _invertMaterial = new Material(_invertOverlayShader);
+        _invertOverlay = CreateImage(parent, "ScreenInvert", sprite, Color.white);
+        _invertOverlay.raycastTarget = false;
+        _invertOverlay.material = _invertMaterial;
+        StretchFullScreen(_invertOverlay.rectTransform);
+        SetInvertOverlayIntensity(0f);
+    }
+
+    private void SetInvertOverlayIntensity(float intensity)
+    {
+        if (_invertMaterial != null)
+        {
+            _invertMaterial.SetFloat(InvertIntensityId, Mathf.Clamp01(intensity));
+        }
+
+        if (_invertOverlay != null)
+        {
+            _invertOverlay.enabled = intensity > 0.001f;
+        }
     }
 
     private static Image CreateImage(Transform parent, string name, Sprite sprite, Color color)
@@ -402,18 +436,6 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
             _targetVignette = _origVignetteIntensity + targetVignetteBoost * postEffectStrength;
         }
 
-        _colorInvert = VolumeManager.instance.stack.GetComponent<ColorInvertVolume>();
-        if (_colorInvert == null && battleVolume.profile.TryGet(out _colorInvert))
-        {
-            Debug.LogWarning("[ZaWarudoScreenEffect] Color Invert が Volume スタックに無いです。BattlePostProfile に Custom/Color Invert を追加してください。");
-        }
-
-        if (_colorInvert != null)
-        {
-            _hasOrigInvert = true;
-            _origInvertIntensity = 0f;
-            _targetInvert = targetInvertIntensity * postEffectStrength;
-        }
     }
 
     private static Volume FindBattleVolume()
@@ -442,9 +464,8 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
     private void RunSequence()
     {
         _sequence?.Kill();
-        _sequence = DOTween.Sequence()
-            .SetUpdate(true)
-            .OnKill(RestoreVolumeImmediate);
+        _hasTeardown = false;
+        _sequence = DOTween.Sequence().SetUpdate(true);
 
         // 連鎖全体が外周から入り、先頭が中心へ（□が等間隔で続く）
         float convergeHeadEnd = 1f + _chainTailOffset;
@@ -493,22 +514,42 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
         _sequence.Append(scatter);
         _sequence.OnComplete(() =>
         {
-            RestoreVolumeImmediate();
-            if (_canvas != null)
-            {
-                Destroy(_canvas.gameObject);
-            }
+            Teardown();
             Destroy(gameObject);
         });
     }
 
-    private Tween CreateVolumeBlendTween(float duration, float fromBlend, float toBlend)
+    private void Teardown()
     {
-        if (!_volumeCaptured)
+        if (_hasTeardown)
         {
-            return DOTween.Sequence();
+            return;
         }
 
+        _hasTeardown = true;
+        _sequence?.Kill();
+        _sequence = null;
+
+        RestoreVolumeImmediate();
+
+        if (_invertMaterial != null)
+        {
+            Destroy(_invertMaterial);
+            _invertMaterial = null;
+        }
+
+        if (_canvas != null)
+        {
+            Destroy(_canvas.gameObject);
+            _canvas = null;
+        }
+
+        _invertOverlay = null;
+        _flashOverlay = null;
+    }
+
+    private Tween CreateVolumeBlendTween(float duration, float fromBlend, float toBlend)
+    {
         float blend = fromBlend;
         return DOTween.To(() => blend, value =>
             {
@@ -521,6 +562,13 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
 
     private void ApplyVolumeBlend(float t)
     {
+        SetInvertOverlayIntensity(Mathf.Lerp(0f, _targetInvert, t));
+
+        if (!_volumeCaptured)
+        {
+            return;
+        }
+
         if (_hasOrigColor)
         {
             _colorAdjustments.saturation.Override(Mathf.Lerp(_origSaturation, _targetSaturation, t));
@@ -532,15 +580,12 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
         {
             _vignette.intensity.Override(Mathf.Lerp(_origVignetteIntensity, _targetVignette, t));
         }
-
-        if (_hasOrigInvert && _colorInvert != null)
-        {
-            _colorInvert.intensity.Override(Mathf.Lerp(_origInvertIntensity, _targetInvert, t));
-        }
     }
 
     private void RestoreVolumeImmediate()
     {
+        SetInvertOverlayIntensity(0f);
+
         if (!_volumeCaptured) return;
 
         if (_hasOrigColor && _colorAdjustments != null)
@@ -553,11 +598,6 @@ public class ZaWarudoScreenEffect : ScreenSpaceSkillVfx
         if (_hasOrigVignette && _vignette != null)
         {
             _vignette.intensity.Override(_origVignetteIntensity);
-        }
-
-        if (_hasOrigInvert && _colorInvert != null)
-        {
-            _colorInvert.intensity.Override(_origInvertIntensity);
         }
     }
 }

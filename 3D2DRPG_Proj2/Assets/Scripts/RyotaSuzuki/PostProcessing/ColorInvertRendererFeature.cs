@@ -4,7 +4,6 @@ using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// ColorInvertVolume を適用する URP Renderer Feature。
-/// URP 14 の FullScreenPass と同様にカラーバッファをコピーしてから描画する。
 /// </summary>
 public sealed class ColorInvertRendererFeature : ScriptableRendererFeature
 {
@@ -15,7 +14,7 @@ public sealed class ColorInvertRendererFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        _pass = new ColorInvertPass("ColorInvert");
+        _pass = new ColorInvertPass();
 
         if (shader == null)
         {
@@ -46,8 +45,7 @@ public sealed class ColorInvertRendererFeature : ScriptableRendererFeature
             return;
         }
 
-        var volume = VolumeManager.instance.stack.GetComponent<ColorInvertVolume>();
-        if (volume == null || !volume.IsActive())
+        if (!ColorInvertVolume.ShouldApply())
         {
             return;
         }
@@ -65,18 +63,10 @@ public sealed class ColorInvertRendererFeature : ScriptableRendererFeature
     private sealed class ColorInvertPass : ScriptableRenderPass
     {
         private static readonly int IntensityId = Shader.PropertyToID("_Intensity");
-        private static readonly int BlitTextureId = Shader.PropertyToID("_BlitTexture");
-        private static readonly int BlitScaleBiasId = Shader.PropertyToID("_BlitScaleBias");
-        private static readonly MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
         private Material _material;
         private ScriptableRenderer _renderer;
         private RTHandle _copiedColor;
-
-        public ColorInvertPass(string passName)
-        {
-            profilingSampler = new ProfilingSampler(passName);
-        }
 
         public void SetMaterial(Material material)
         {
@@ -110,31 +100,17 @@ public sealed class ColorInvertRendererFeature : ScriptableRendererFeature
                 return;
             }
 
-            var volume = VolumeManager.instance.stack.GetComponent<ColorInvertVolume>();
-            if (volume == null || !volume.IsActive())
+            if (!ColorInvertVolume.ShouldApply())
             {
                 return;
             }
 
-            ref var cameraData = ref renderingData.cameraData;
             var cmd = CommandBufferPool.Get("ColorInvert");
+            var source = renderingData.cameraData.renderer.cameraColorTargetHandle;
 
-            using (new ProfilingScope(cmd, profilingSampler))
-            {
-                _material.SetFloat(IntensityId, volume.intensity.value);
-
-                var source = cameraData.renderer.cameraColorTargetHandle;
-
-                CoreUtils.SetRenderTarget(cmd, _copiedColor);
-                Blitter.BlitTexture(cmd, source, new Vector4(1f, 1f, 0f, 0f), 0f, false);
-
-                CoreUtils.SetRenderTarget(cmd, source);
-
-                s_PropertyBlock.Clear();
-                s_PropertyBlock.SetTexture(BlitTextureId, _copiedColor);
-                s_PropertyBlock.SetVector(BlitScaleBiasId, new Vector4(1f, 1f, 0f, 0f));
-                cmd.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
-            }
+            _material.SetFloat(IntensityId, ColorInvertVolume.GetEffectiveIntensity());
+            Blitter.BlitCameraTexture(cmd, source, _copiedColor, _material, 0);
+            Blitter.BlitCameraTexture(cmd, _copiedColor, source);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

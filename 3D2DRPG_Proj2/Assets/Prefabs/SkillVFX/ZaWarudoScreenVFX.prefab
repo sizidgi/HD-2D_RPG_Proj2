@@ -67,4 +67,4 @@ MonoBehaviour:
   targetContrastBoost: 4
   targetVignetteBoost: 0.18
   targetPostExposure: -0.12
-  targetInvertIntensity: 0.85
+  targetInvertIntensity: 1
