@@ -29,6 +29,13 @@ public class EnemyManager : MonoBehaviour
     [SerializeField]
     private SkillSelectionUI skillSelectionUI; // スキル選択UIの参照(スキル名表示用)
 
+    [SerializeField, Header("バフアイコン")]
+    private GameObject buffIconPrefab;
+    [SerializeField, Tooltip("敵スプライト左上へのオフセット")]
+    private Vector3 enemyBuffIconOffset = new Vector3(1.2f, 2.5f, 0f);
+    [SerializeField, Tooltip("ワールド空間Canvasのスケール")]
+    private float enemyBuffIconCanvasScale = 0.01f;
+
     // 戦闘カメラ制御
     [SerializeField] private BattleCameraController battleCamera;
     
@@ -86,6 +93,7 @@ public class EnemyManager : MonoBehaviour
                 }
                 
                 obj.transform.parent = this.gameObject.transform;
+                AttachEnemyBuffIconDisplay(obj);
                 enemygameObjects.Add(obj);
             }
         }
@@ -106,6 +114,36 @@ public class EnemyManager : MonoBehaviour
             }
         }
     }
+
+    /// <summary>
+    /// 敵にバフアイコン表示を接続
+    /// </summary>
+    private void AttachEnemyBuffIconDisplay(GameObject enemyObj)
+    {
+        if (buffIconPrefab == null)
+        {
+            Debug.LogWarning("[EnemyManager] buffIconPrefab が未設定のため、敵のバフアイコンを表示できません");
+            return;
+        }
+
+        CharacterBuffManager buffManager = enemyObj.GetComponent<CharacterBuffManager>();
+        if (buffManager == null)
+        {
+            return;
+        }
+
+        BuffIconDisplay buffDisplay = BuffIconDisplay.AttachToWorldSpaceCharacter(
+            enemyObj,
+            buffIconPrefab,
+            enemyBuffIconOffset,
+            enemyBuffIconCanvasScale);
+
+        if (buffDisplay != null)
+        {
+            buffManager.OnBuffsChanged.AddListener(buffDisplay.UpdateBuffIcons);
+        }
+    }
+
     public void Test()
     {
         //EnemyChange

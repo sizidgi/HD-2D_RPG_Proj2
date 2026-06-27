@@ -18,7 +18,7 @@ public enum SkillEffectType { Attack, Heal, Buff, ExtraAction, Revive }
 [CreateAssetMenu(menuName = "SkillData")]
 public class SkillData : ScriptableObject
 {
-    [Header("Šî–{î•ñ")]
+    [Header("ï¿½ï¿½{ï¿½ï¿½ï¿½")]
     public string skillName;
     [TextArea] public string description;
     public Sprite icon;
@@ -28,7 +28,7 @@ public class SkillData : ScriptableObject
     public SkillEffectType effectType;
     //public string targetType;
 
-    [Header("í“¬ƒpƒ‰ƒ[ƒ^")]
+    [Header("ï¿½í“¬ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½^")]
     public float power = 10f;
     public int mpCost = 0;
     public float cooldown = 0f;
@@ -43,7 +43,7 @@ public class SkillData : ScriptableObject
     //public ElementType elementType;
     //public TargetType targetType;
 
-    [Header("ƒRƒ“ƒ{İ’è")]
+    [Header("ï¿½Rï¿½ï¿½ï¿½{ï¿½İ’ï¿½")]
     public bool canCombo = false;
     public bool DamageUp = false;
     public int ComboDamage = 0;
@@ -54,49 +54,49 @@ public class SkillData : ScriptableObject
     public int maxcombo= 3;
     public bool missCancel = true;
 
-    [Header("˜AŒ‚Œø‰Ê‚ğ‚ÂH")]
+    [Header("ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ÂH")]
     public bool rengeki = false;
-    [Header("˜AŒ‚Œø‰Ê‚ğ‚ÂH")]
+    [Header("ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½ÂH")]
     public int rengekiCount = 0;
 
-    [Header("UŒ‚ŒãAŠ„‡‚Å‰ñ•œ‚·‚é‚©H")]
+    [Header("ï¿½Uï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½Å‰ñ•œ‚ï¿½ï¿½é‚©ï¿½H")]
     public bool atkAftHeal = false;
     public float wariaiHeal = 0f;
     public float wariai = 0f;
 
-    [Header("ó‘ÔˆÙíEŒø‰Ê")]
+    [Header("ï¿½ï¿½ÔˆÙï¿½Eï¿½ï¿½ï¿½ï¿½")]
     //public StatusEffect inflictStatus;
     public float statusChance = 0f;
-    [Header("ƒoƒt‚ÌŠÇ—ƒXƒNƒŠƒvƒg")]
+    [Header("ï¿½oï¿½tï¿½ÌŠÇ—ï¿½ï¿½Xï¿½Nï¿½ï¿½ï¿½vï¿½g")]
     public List<BuffBase> buffEffect;
-    [Header("ƒoƒt’l")]
+    [Header("ï¿½oï¿½tï¿½l")]
     public float buffValue = 0f;
-    [Header("ƒoƒt‚ÌŒp‘±ŠÔ")]
+    [Header("ï¿½oï¿½tï¿½ÌŒpï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public int buffDuration = 0;
 
-    [Header("ƒ_ƒ[ƒWƒ{[ƒiƒX‚ğg—p‚·‚é")]
+    [Header("ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½{ï¿½[ï¿½iï¿½Xï¿½ï¿½ï¿½gï¿½pï¿½ï¿½ï¿½ï¿½")]
     public bool DamageBonusFlg = false;
 
-    [Header("‘®«")]
+    [Header("ï¿½ï¿½ï¿½ï¿½")]
     public ZokuseiType ZokuseiType = ZokuseiType.Buturi; 
 
-    [Header("ƒ‰ƒ“ƒ_ƒ€Œø‰ÊƒXƒLƒ‹")]
-    [Tooltip("true‚Ìê‡‚Í‰ñ•œ‚©ƒ_ƒ[ƒW‚©")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½ÊƒXï¿½Lï¿½ï¿½")]
+    [Tooltip("trueï¿½Ìê‡ï¿½Í‰ñ•œ‚ï¿½ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½")]
     public bool isRandomEffect = false;
 
-    [Header("ˆê“x‚«‚èH")]
+    [Header("ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½H")]
     public bool isOnlyOnece = false;
 
-    [Header("UŒ‚‰ñ”")]
+    [Header("ï¿½Uï¿½ï¿½ï¿½ï¿½")]
     public int attackCount = 1;
 
-    [Header("•KE‹Z‚©H")]
+    [Header("ï¿½Kï¿½Eï¿½Zï¿½ï¿½ï¿½H")]
     public bool isUltimateSkill = false;
 
-    [Header("“Á•Ê‚Ès“®‰ñ”‚ğ‚à‚Â‚©H")]
+    [Header("ï¿½ï¿½ï¿½Ê‚Èsï¿½ï¿½ï¿½ñ”‚ï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½H")]
     public bool hasExtraActions = false;
 
-    [Tooltip("“Á•Ê‚Ès“®‰ñ”‚Å‚Ç‚ê‚­‚ç‚¢s“®‚·‚é‚©")]
+    [Tooltip("ï¿½ï¿½ï¿½Ê‚Èsï¿½ï¿½ï¿½ñ”‚Å‚Ç‚ê‚­ï¿½ç‚¢ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½é‚©")]
     public int extraActionCount = 2;
 }
 

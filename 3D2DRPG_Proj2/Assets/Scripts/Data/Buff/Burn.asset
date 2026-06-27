@@ -15,7 +15,7 @@ MonoBehaviour:
   buffId: 9cdf3348-2616-4e91-a375-e53829eacc9c
   buffName: "\u3084\u3051\u3069"
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b8fb5a74a82904d4a8057c26146cf117, type: 3}
   buffType: 2
   duration: 5
   buffRange: 4

@@ -214,25 +214,7 @@ public class CharacterBuffManager : MonoBehaviour
                     if (ownerCharacter.enemyCheckFlag)
                     {
                         Debug.Log($"[CharacterBuffManager] {ownerCharacter.charactername} が{damageType}の継続ダメージで倒れました");
-                        
-                        if (turnManager.enemys.Contains(ownerCharacter.gameObject))
-                        {
-                            turnManager.enemys.Remove(ownerCharacter.gameObject);
-                        }
-                        if (turnManager.turnList.Contains(ownerCharacter.gameObject))
-                        {
-                            turnManager.turnList.Remove(ownerCharacter.gameObject);
-                        }
-                        turnManager.RemoveCharacterFromTurnList(ownerCharacter);
-
-                        if (ownerCharacter.CharacterObj != null)
-                        {
-                            Destroy(ownerCharacter.CharacterObj);
-                        }
-                        else
-                        {
-                            Destroy(ownerCharacter.gameObject);
-                        }
+                        turnManager.NotifyEnemyDefeated(ownerCharacter);
                     }
                     // 継続ダメージでプレイヤーが倒れた場合の処理
                     else
@@ -245,6 +227,12 @@ public class CharacterBuffManager : MonoBehaviour
 
             // リロードは攻撃消費 or ターン終了失効で管理するためTickTurn対象外
             if (buff.baseData is ReloadBuff)
+            {
+                continue;
+            }
+
+            // 行動不能系はターン開始時のConsumeSkipTurnDebuffで解除
+            if (StatusEffectCalculator.IsActionBlockingDebuff(buff.baseData))
             {
                 continue;
             }
@@ -315,6 +303,24 @@ public class CharacterBuffManager : MonoBehaviour
         return Mathf.RoundToInt(effectiveAtk);
     }
     
+    /// <summary>フリーズ等によりこのターン行動をスキップするか</summary>
+    public bool ShouldSkipTurn()
+    {
+        return activeBuffs.Any(b => b.baseData != null && StatusEffectCalculator.IsActionBlockingDebuff(b.baseData));
+    }
+
+    /// <summary>行動スキップ後に行動不能デバフを1つ解除する</summary>
+    public void ConsumeSkipTurnDebuff()
+    {
+        var blockingBuff = activeBuffs.FirstOrDefault(b =>
+            b.baseData != null && StatusEffectCalculator.IsActionBlockingDebuff(b.baseData));
+
+        if (blockingBuff != null)
+        {
+            RemoveBuff(blockingBuff);
+        }
+    }
+
     /// <summary>MutekiBuff が有効なら被ダメージ0</summary>
     public bool IsInvincible()
     {

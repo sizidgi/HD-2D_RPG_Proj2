@@ -57,16 +57,22 @@ public class PlayerStatusPanel : MonoBehaviour
     [SerializeField] private float iconSize = 32f; // アイコンのサイズ
 
     private PlayerData currentPlayerData;
-    private List<GameObject> activeBuffIcons = new List<GameObject>();
+    private BuffIconDisplay buffIconDisplay;
+
+    void Awake()
+    {
+        buffIconDisplay = GetComponent<BuffIconDisplay>();
+        if (buffIconDisplay == null)
+        {
+            buffIconDisplay = gameObject.AddComponent<BuffIconDisplay>();
+        }
+        buffIconDisplay.Configure(buffIconContainer, buffIconPrefab, iconSize);
+    }
 
     void Start()
     {
         // 初期設定
         InitializeBars();
-        
-        // バフアイコンコンテナを初期非表示
-        if (buffIconContainer != null)
-            buffIconContainer.gameObject.SetActive(false);
         
         // ダミーデータで初期化（テスト用）
         //UpdatePlayerStatus(PlayerData.CreateDummyData(0));
@@ -351,109 +357,17 @@ public class PlayerStatusPanel : MonoBehaviour
     /// <summary>
     /// バフアイコンを更新（CharacterBuffManagerから呼び出される）
     /// </summary>
-    /// <param name="buffs">現在適用されているバフのリスト</param>
     public void UpdateBuffIcons(List<BuffInstance> buffs)
     {
-        Debug.Log($"[PlayerStatusPanel] UpdateBuffIcons 呼び出し: buffs数={buffs?.Count ?? 0}");
-        
-        // 既存のアイコンを全削除
-        ClearBuffIcons();
-
-        if (buffs == null || buffs.Count == 0)
+        if (buffIconDisplay == null)
         {
-            Debug.Log("[PlayerStatusPanel] バフなし - コンテナ非表示");
-            // バフがない場合はコンテナを非表示
-            if (buffIconContainer != null)
-                buffIconContainer.gameObject.SetActive(false);
-            return;
-        }
-
-        // バフがある場合はコンテナを表示
-        if (buffIconContainer != null)
-        {
-            buffIconContainer.gameObject.SetActive(true);
-            Debug.Log($"[PlayerStatusPanel] コンテナ表示: {buffIconContainer.name}");
-        }
-        else
-        {
-            Debug.LogWarning("[PlayerStatusPanel] buffIconContainerがnullです！");
-        }
-
-        // 各バフに対してアイコンを生成
-        int iconCount = 0;
-        foreach (var buff in buffs)
-        {
-            if (buff.baseData == null)
+            buffIconDisplay = GetComponent<BuffIconDisplay>();
+            if (buffIconDisplay != null)
             {
-                Debug.LogWarning($"[PlayerStatusPanel] バフのbaseDataがnull");
-                continue;
+                buffIconDisplay.Configure(buffIconContainer, buffIconPrefab, iconSize);
             }
-            
-            if (buff.baseData.icon == null)
-            {
-                //Debug.LogWarning($"[PlayerStatusPanel] バフ '{buff.buffName}' のアイコンがnull");
-                continue;
-            }
-
-            CreateBuffIcon(buff.baseData.icon, buff);
-            iconCount++;
-        }
-        
-        Debug.Log($"[PlayerStatusPanel] アイコン生成完了: {iconCount}個");
-    }
-
-    /// <summary>
-    /// バフアイコンを1つ作成
-    /// </summary>
-    private void CreateBuffIcon(Sprite icon, BuffInstance buff)
-    {
-        if (buffIconPrefab == null)
-        {
-            Debug.LogWarning("[PlayerStatusPanel] buffIconPrefabが設定されていません");
-            return;
-        }
-        
-        if (buffIconContainer == null)
-        {
-            Debug.LogWarning("[PlayerStatusPanel] buffIconContainerが設定されていません");
-            return;
         }
 
-        GameObject iconObj = Instantiate(buffIconPrefab, buffIconContainer);
-        Debug.Log($"[PlayerStatusPanel] アイコン生成: {buff.buffName}, icon={icon.name}");
-        
-        Image iconImage = iconObj.GetComponent<Image>();
-        if (iconImage != null)
-        {
-            iconImage.sprite = icon;
-            Debug.Log($"[PlayerStatusPanel] Imageにスプライト設定: {icon.name}");
-        }
-        else
-        {
-            Debug.LogWarning("[PlayerStatusPanel] アイコンオブジェクトにImageコンポーネントがありません");
-        }
-
-        // ターン数表示（オプション）
-        TextMeshProUGUI turnText = iconObj.GetComponentInChildren<TextMeshProUGUI>();
-        if (turnText != null && buff.remainingTurns > 0)
-        {
-            turnText.text = buff.remainingTurns.ToString();
-            Debug.Log($"[PlayerStatusPanel] ターン数表示: {buff.remainingTurns}");
-        }
-
-        activeBuffIcons.Add(iconObj);
-    }
-
-    /// <summary>
-    /// すべてのバフアイコンをクリア
-    /// </summary>
-    private void ClearBuffIcons()
-    {
-        foreach (var icon in activeBuffIcons)
-        {
-            if (icon != null)
-                Destroy(icon);
-        }
-        activeBuffIcons.Clear();
+        buffIconDisplay?.UpdateBuffIcons(buffs);
     }
 } 

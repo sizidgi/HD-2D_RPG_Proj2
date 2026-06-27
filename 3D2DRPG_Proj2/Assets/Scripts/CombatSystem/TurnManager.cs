@@ -213,6 +213,15 @@ public class TurnManager : MonoBehaviour
                 
                 // フラグを立てる
                 turnFlag = false;
+                // ラウンド終了時は次ラウンドへ進める
+                AdvanceRoundIfNeeded();
+                if (sortedTurnList.Count == 0)
+                {
+                    Debug.LogWarning("[TurnManager] sortedTurnListが空のため戦闘を終了します");
+                    EndTurnManager();
+                    yield break;
+                }
+
                 // Turnリストを取得
                 var nextCharacterStatus = sortedTurnList[turnNumber];
                 currentTurnObject = nextCharacterStatus;
@@ -236,15 +245,37 @@ public class TurnManager : MonoBehaviour
                     }
                     
                     // 継続ダメージで倒れた場合はスキップ
+                    // ※RemoveCharacterFromTurnListでリストが詰まるためturnNumberは進めない
                     if (character.hp <= 0)
                     {
                         Debug.Log($"[TurnManager] {character.charactername} は継続ダメージで行動不能になりました");
+                        if (players.Count == 0 || enemys.Count == 0)
+                        {
+                            EndTurnManager();
+                            yield break;
+                        }
+                        AdvanceRoundIfNeeded();
                         turnFlag = true;
+                        continue;
+                    }
+
+                    // フリーズ等で行動不能
+                    if (buffManager != null && buffManager.ShouldSkipTurn())
+                    {
+                        Debug.Log($"[TurnManager] {character.charactername} は状態異常により行動をスキップしました");
+                        buffManager.ConsumeSkipTurnDebuff();
+                        if (players.Count == 0 || enemys.Count == 0)
+                        {
+                            EndTurnManager();
+                            yield break;
+                        }
                         turnNumber++;
                         if (turnNumber < sortedTurnList.Count)
                         {
                             UIManager.Instance.NextTurn();
                         }
+                        AdvanceRoundIfNeeded();
+                        turnFlag = true;
                         continue;
                     }
                 }
@@ -340,6 +371,15 @@ public class TurnManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 敵撃破時の共通処理（PlayerManagerへ委譲）
+    /// </summary>
+    public void NotifyEnemyDefeated(Character target)
+    {
+        if (target == null || !target.enemyCheckFlag || playerManager == null) return;
+        playerManager.ProcessEnemyDefeat(target);
+    }
+
+    /// <summary>
     /// 蘇生したプレイヤーを次ラウンド用 turnList に登録
     /// </summary>
     public void RegisterRevivedPlayer(GameObject playerObj)
@@ -367,21 +407,28 @@ public class TurnManager : MonoBehaviour
             Debug.Log("[TurnManager] 戦闘一時停止中のため、ターン進行を停止します");
             return;
         }
-        
-        // 全員の行動が完了したかチェック
-        if (turnNumber >= sortedTurnList.Count)
+
+        AdvanceRoundIfNeeded();
+        turnFlag = true;
+    }
+
+    /// <summary>
+    /// 現ラウンドの行動が尽きたら次ラウンドのターンリストを生成する
+    /// </summary>
+    private void AdvanceRoundIfNeeded()
+    {
+        if (turnNumber < sortedTurnList.Count)
         {
-            // ラウンド終了処理
-            turnNumber = 0;
-
-            // 次のラウンドのターンリストを生成
-            GenerateNextRoundTurnList();
-
-            // UI更新
-            UIManager.Instance.UpdateTurnUI(sortedTurnList, turnNumber);
+            return;
         }
 
-        turnFlag = true;
+        turnNumber = 0;
+        GenerateNextRoundTurnList();
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateTurnUI(sortedTurnList, turnNumber);
+        }
     }
     
     /// <summary>

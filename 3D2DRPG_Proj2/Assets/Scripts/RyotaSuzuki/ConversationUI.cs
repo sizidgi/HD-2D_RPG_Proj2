@@ -945,7 +945,7 @@ public class ConversationUI : MonoBehaviour
         // ログ表示中は会話操作を無効にする
         bool isLogViewerOpen = logPanel != null && logPanel.activeInHierarchy;
         if (dialoguePanel.activeInHierarchy && !isLogViewerOpen &&
-            (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
+        (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
         {
             NextDialogue();
         }

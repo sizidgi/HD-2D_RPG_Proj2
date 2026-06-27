@@ -13,9 +13,6 @@ public class PlayerController : MonoBehaviour
     private float Speed;
 
     [SerializeField, Header("走る速度"), Range(1, 5)]
-
-
-//    [SerializeField, Header("�E�_�E�b�E�V�E��E��E�̑��E�x"), Range(1, 5)]
     private float DashSpeed;
 
     [Header("クイックタイム戦闘")]
@@ -436,10 +433,10 @@ public class PlayerController : MonoBehaviour
         float x = inputVector.x;
         float y = inputVector.y;
 
-        if (Input.GetKey(KeyCode.D)) x = 1f;
-        if (Input.GetKey(KeyCode.A)) x = -1f;
-        if (Input.GetKey(KeyCode.W)) y = 1f;
-        if (Input.GetKey(KeyCode.S)) y = -1f;
+        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) x = 1f;
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) x = -1f;
+        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) y = 1f;
+        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) y = -1f;
 
         Vector2 finalInput = new Vector2(x, y);
 

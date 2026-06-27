@@ -1175,7 +1175,7 @@ public class PlayerManager : MonoBehaviour
     /// <summary>
     /// 敵撃破時の共通処理（リスト削除・UI更新・Destroy）
     /// </summary>
-    private void ProcessEnemyDefeat(Character enemy)
+    public void ProcessEnemyDefeat(Character enemy)
     {
         if (enemy == null || enemy.hp > 0) return;
         if (turnManager != null && !turnManager.enemys.Contains(enemy.gameObject)) return;
@@ -1354,7 +1354,50 @@ public class PlayerManager : MonoBehaviour
             return false;
         }
 
+        TryApplySkillDebuffs(enemy, skill);
         return true;
+    }
+
+    /// <summary>
+    /// 攻撃ヒット時の状態異常付与（確率: (INT差×5)+Lv%）
+    /// </summary>
+    private void TryApplySkillDebuffs(Character target, SkillData skill)
+    {
+        if (target == null || skill == null || selectedCharacter == null || target.hp <= 0)
+        {
+            return;
+        }
+
+        if (skill.buffEffect == null || skill.buffEffect.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var buffBase in skill.buffEffect)
+        {
+            if (buffBase == null || !StatusEffectCalculator.IsOnHitStatusDebuff(buffBase))
+            {
+                continue;
+            }
+
+            float successPercent = StatusEffectCalculator.CalculateSuccessPercent(selectedCharacter, target);
+            if (UnityEngine.Random.value >= successPercent / 100f)
+            {
+                Debug.Log($"[PlayerManager] {buffBase.buffName} 付与失敗 ({successPercent:F0}%) → {target.charactername}");
+                continue;
+            }
+
+            BuffInstance buff = new BuffInstance(buffBase);
+            buff.remainingTurns = skill.buffDuration > 0 ? skill.buffDuration : buffBase.duration;
+            if (buff.remainingTurns <= 0)
+            {
+                buff.remainingTurns = 1;
+            }
+
+            target.ApplyBuff(buff, selectedCharacter);
+            PlayBuffVFX(buff, target);
+            Debug.Log($"[PlayerManager] {buffBase.buffName} 付与成功 ({successPercent:F0}%) → {target.charactername}");
+        }
     }
 
     /// <summary>
@@ -1515,7 +1558,10 @@ public class PlayerManager : MonoBehaviour
             case StatusEffect.Burn:
                 VFXManager.Instance.PlayPoisonEffect(target.CharacterObj);
                 break;
-                
+
+            case StatusEffect.Freeze:
+            case StatusEffect.Stun:
+            case StatusEffect.Sleep:
             case StatusEffect.SpdDown:
             case StatusEffect.MagicDamageDown:
                 VFXManager.Instance.PlayDebuffEffect(target.CharacterObj);
@@ -1544,9 +1590,17 @@ public class PlayerManager : MonoBehaviour
         if (selectedSkill.buffEffect.Count > 0)
         {
             List<BuffBase> buffBase = selectedSkill.buffEffect;
+            bool hasPendingBuff = false;
 
             foreach (var buff in buffBase)
             {
+                if (StatusEffectCalculator.IsOnHitStatusDebuff(buff))
+                {
+                    continue;
+                }
+
+                hasPendingBuff = true;
+
                 if (buff.isSelfTarget)
                 {
                     OnBuffSelected(new List<Character>() { selectedCharacter }, 0, buff);
@@ -1580,6 +1634,12 @@ public class PlayerManager : MonoBehaviour
                         uiTest.Inputs(buffEvents, buffenemies.Count - 1, buffenemies);
                         break;
                 }
+            }
+
+            if (!hasPendingBuff)
+            {
+                selectedCharacter.StatusFlag = StatusFlag.End;
+                isActionPending = true;
             }
         }
         else

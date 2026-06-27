@@ -43,9 +43,10 @@ MonoBehaviour:
   wariaiHeal: 0
   wariai: 0
   statusChance: 0
-  buffEffect: []
+  buffEffect:
+  - {fileID: 11400000, guid: 63c2ee0ee0004eee8984f51f5c291927, type: 2}
   buffValue: 0
-  buffDuration: 0
+  buffDuration: 1
   DamageBonusFlg: 1
   ZokuseiType: 0
   isRandomEffect: 0

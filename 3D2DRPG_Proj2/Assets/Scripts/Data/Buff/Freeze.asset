@@ -9,17 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51410d482e76f174996e1fe0bdf26bad, type: 3}
-  m_Name: NovaBurn
+  m_Script: {fileID: 11500000, guid: da6c06843e104b8ca78f7ff62ff467d0, type: 3}
+  m_Name: Freeze
   m_EditorClassIdentifier: 
-  buffId: 9cdf3348-2616-4e91-a375-e53829eacc9c
-  buffName: "\u3084\u3051\u3069"
-  description: 
-  icon: {fileID: 21300000, guid: b8fb5a74a82904d4a8057c26146cf117, type: 3}
+  buffId: 3f2a1b0c-9d8e-7f6a-5b4c-3d2e1f0a9b8c
+  buffName: "\u30D5\u30EA\u30FC\u30BA"
+  description: "\u6B21\u306E\u81EA\u8EAB\u30BF\u30FC\u30F3\u306E\u884C\u52D5\u30921\u56DE\u30B9\u30AD\u30C3\u30D7\u3059\u308B"
+  icon: {fileID: 0}
   buffType: 2
-  duration: 5
+  duration: 1
   buffRange: 2
   sourceCharacter: {fileID: 0}
   isSelfTarget: 0
-  statusEffect: 2
-  damagePerTurn: 12
+  statusEffect: 3
