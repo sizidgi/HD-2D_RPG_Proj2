@@ -18,7 +18,7 @@ public enum SkillEffectType { Attack, Heal, Buff, ExtraAction, Revive }
 [CreateAssetMenu(menuName = "SkillData")]
 public class SkillData : ScriptableObject
 {
-    [Header("��{���")]
+    [Header("基本情報")]
     public string skillName;
     [TextArea] public string description;
     public Sprite icon;
@@ -28,7 +28,7 @@ public class SkillData : ScriptableObject
     public SkillEffectType effectType;
     //public string targetType;
 
-    [Header("�퓬�p�����[�^")]
+    [Header("戦闘パラメータ")]
     public float power = 10f;
     public int mpCost = 0;
     public float cooldown = 0f;
@@ -43,7 +43,7 @@ public class SkillData : ScriptableObject
     //public ElementType elementType;
     //public TargetType targetType;
 
-    [Header("�R���{�ݒ�")]
+    [Header("コンボ設定")]
     public bool canCombo = false;
     public bool DamageUp = false;
     public int ComboDamage = 0;
@@ -54,49 +54,49 @@ public class SkillData : ScriptableObject
     public int maxcombo= 3;
     public bool missCancel = true;
 
-    [Header("�A�����ʂ����H")]
+    [Header("連撃効果を持つ？")]
     public bool rengeki = false;
-    [Header("�A�����ʂ����H")]
+    [Header("連撃効果を持つ？")]
     public int rengekiCount = 0;
 
-    [Header("�U����A�����ŉ񕜂��邩�H")]
+    [Header("攻撃後、割合で回復するか？")]
     public bool atkAftHeal = false;
     public float wariaiHeal = 0f;
     public float wariai = 0f;
 
-    [Header("��Ԉُ�E����")]
+    [Header("状態異常・効果")]
     //public StatusEffect inflictStatus;
     public float statusChance = 0f;
-    [Header("�o�t�̊Ǘ��X�N���v�g")]
+    [Header("バフの管理スクリプト")]
     public List<BuffBase> buffEffect;
-    [Header("�o�t�l")]
+    [Header("バフ値")]
     public float buffValue = 0f;
-    [Header("�o�t�̌p������")]
+    [Header("バフの継続時間")]
     public int buffDuration = 0;
 
-    [Header("�_���[�W�{�[�i�X���g�p����")]
+    [Header("ダメージボーナスを使用する")]
     public bool DamageBonusFlg = false;
 
-    [Header("����")]
+    [Header("属性")]
     public ZokuseiType ZokuseiType = ZokuseiType.Buturi; 
 
-    [Header("�����_�����ʃX�L��")]
-    [Tooltip("true�̏ꍇ�͉񕜂��_���[�W��")]
+    [Header("ランダム効果スキル")]
+    [Tooltip("trueの場合は回復かダメージか")]
     public bool isRandomEffect = false;
 
-    [Header("��x����H")]
+    [Header("一度きり？")]
     public bool isOnlyOnece = false;
 
-    [Header("�U����")]
+    [Header("攻撃回数")]
     public int attackCount = 1;
 
-    [Header("�K�E�Z���H")]
+    [Header("必殺技か？")]
     public bool isUltimateSkill = false;
 
-    [Header("���ʂȍs���񐔂������H")]
+    [Header("特別な行動回数をもつか？")]
     public bool hasExtraActions = false;
 
-    [Tooltip("���ʂȍs���񐔂łǂꂭ�炢�s�����邩")]
+    [Tooltip("特別な行動回数でどれくらい行動するか")]
     public int extraActionCount = 2;
 }
 
