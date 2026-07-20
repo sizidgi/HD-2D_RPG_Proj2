@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: "\u9B54\u529B\u96C6\u4E2D"
   description: 
   icon: {fileID: 0}
-  soundEffect: {fileID: 0}
+  soundEffect: {fileID: 8300000, guid: bb4ed881c8f714d48bbb4309293448f8, type: 3}
   vfxPrefab: {fileID: 0}
   animationName: 
   effectType: 2
